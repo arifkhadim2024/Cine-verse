@@ -1,26 +1,221 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import { Play, Info, Search, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import heroImg from "@/assets/hero-cinema.jpg";
+import { Layout } from "@/components/Layout";
+import { MovieRow } from "@/components/MovieRow";
+import { trending, topRated, continueWatching, genres } from "@/data/movies";
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
+export const Route = createFileRoute("/")({ component: HomePage });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+const genreColors: Record<string, string> = {
+  Horror: "from-red-900 to-black",
+  Comedy: "from-pink-700 to-red-900",
+  Action: "from-red-700 to-orange-900",
+  Thriller: "from-purple-900 to-red-950",
+  Romance: "from-pink-600 to-rose-900",
+  "Sci-Fi": "from-indigo-900 to-red-900",
+  Anime: "from-blue-900 to-red-900",
+  Adventure: "from-amber-800 to-red-900",
+};
+
+function HomePage() {
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  const hero = trending[heroIndex];
+
+  useEffect(() => {
+    const t = setInterval(() => setHeroIndex((i) => (i + 1) % trending.length), 6000);
+    return () => clearInterval(t);
+  }, []);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+    <Layout>
+      {/* HERO */}
+      <section className="relative h-[92vh] min-h-[600px] w-full overflow-hidden">
+        <img
+          src={heroImg}
+          alt=""
+          width={1920}
+          height={1080}
+          className="absolute inset-0 w-full h-full object-cover opacity-50"
+        />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={hero.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0"
+            style={{ background: hero.backdropGradient }}
+          />
+        </AnimatePresence>
+        <div className="absolute inset-0 gradient-hero" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
 
-function Index() {
-  return <PlaceholderIndex />;
+        <div className="relative h-full mx-auto max-w-7xl px-4 sm:px-6 flex flex-col justify-end pb-20 sm:pb-28">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={hero.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-2xl"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xs font-bold tracking-[0.3em] uppercase text-primary">
+                  ◆ Featured
+                </span>
+                <span className="text-xs text-muted-foreground">#{heroIndex + 1} Trending today</span>
+              </div>
+              <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none drop-shadow-2xl">
+                {hero.title}
+              </h1>
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+                <span className="font-semibold text-primary">★ {hero.imdb} IMDb</span>
+                <span className="text-muted-foreground">{hero.year}</span>
+                <span className="text-muted-foreground">{hero.duration}</span>
+                <div className="flex gap-1.5">
+                  {hero.genres.map((g) => (
+                    <span key={g} className="px-2 py-0.5 rounded-full glass text-xs">{g}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-5 text-base sm:text-lg text-white/85 max-w-xl leading-relaxed">
+                {hero.description}
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  to="/movie/$id"
+                  params={{ id: hero.id }}
+                  className="inline-flex items-center gap-2 rounded-md gradient-red px-6 py-3 font-semibold text-primary-foreground shadow-red hover:scale-105 transition-transform"
+                >
+                  <Play className="w-5 h-5 fill-current" /> Watch Trailer
+                </Link>
+                <Link
+                  to="/movie/$id"
+                  params={{ id: hero.id }}
+                  className="inline-flex items-center gap-2 rounded-md glass-strong px-6 py-3 font-semibold hover:bg-accent transition-colors"
+                >
+                  <Info className="w-5 h-5" /> More Info
+                </Link>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="absolute right-4 sm:right-6 bottom-20 sm:bottom-28 hidden md:flex flex-col gap-2">
+            {trending.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroIndex(i)}
+                className={`h-10 w-1 rounded-full transition-all ${
+                  i === heroIndex ? "bg-primary shadow-red" : "bg-white/20 hover:bg-white/40"
+                }`}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SEARCH BAR */}
+      <section className="relative -mt-12 sm:-mt-16 mx-auto max-w-3xl px-4 sm:px-6 z-10">
+        <form
+          onSubmit={(e) => { e.preventDefault(); navigate({ to: "/search", search: { q: query } as never }); }}
+          className="glass-strong rounded-2xl p-2 flex items-center gap-2 shadow-red"
+        >
+          <Search className="w-5 h-5 ml-3 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search films, actors, moods… try 'mind bending'"
+            className="flex-1 bg-transparent outline-none text-base py-3 placeholder:text-muted-foreground"
+          />
+          <button
+            type="submit"
+            className="rounded-xl gradient-red px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:scale-105 transition-transform"
+          >
+            Search
+          </button>
+        </form>
+        <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
+          {["sad", "funny", "mind bending", "dark", "feel-good"].map((m) => (
+            <Link
+              key={m}
+              to="/search"
+              search={{ q: m } as never}
+              className="px-3 py-1.5 rounded-full glass hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              #{m}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* GENRES */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-16">
+        <div className="flex items-end justify-between mb-5">
+          <h2 className="font-display text-3xl sm:text-4xl">Browse by Genre</h2>
+          <Link to="/genres" className="text-sm text-primary hover:underline">View all →</Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          {genres.map((g, i) => (
+            <motion.div
+              key={g}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.04 }}
+            >
+              <Link
+                to="/search"
+                search={{ q: g } as never}
+                className={`group relative block aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br ${genreColors[g]} shadow-card hover:shadow-red transition-all hover:scale-[1.03]`}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
+                <div className="absolute inset-0 flex items-end p-4">
+                  <span className="font-display text-2xl sm:text-3xl drop-shadow-lg">{g}</span>
+                </div>
+                <div className="absolute top-3 right-3 w-8 h-8 grid place-items-center rounded-full glass opacity-0 group-hover:opacity-100 transition-opacity">
+                  →
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* AI Promo */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-16">
+        <Link
+          to="/ai"
+          className="relative block overflow-hidden rounded-2xl glass-strong p-6 sm:p-10 group hover:shadow-red transition-shadow"
+        >
+          <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full gradient-red opacity-30 blur-3xl group-hover:opacity-50 transition-opacity" />
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-14 h-14 rounded-xl gradient-red grid place-items-center shadow-red shrink-0">
+              <Sparkles className="w-7 h-7 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-display text-2xl sm:text-3xl">Meet your AI Cinematographer</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                "Suggest a mind-bending thriller like Inception." Get instant, curated picks.
+              </p>
+            </div>
+            <span className="rounded-md gradient-red px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-red whitespace-nowrap">
+              Open Assistant →
+            </span>
+          </div>
+        </Link>
+      </section>
+
+      <MovieRow title="Trending Now" subtitle="What everyone's watching this week" movies={trending} />
+      <MovieRow title="Top Rated" subtitle="Critically acclaimed masterpieces" movies={topRated} />
+      <MovieRow title="Continue Watching" subtitle="Pick up where you left off" movies={continueWatching} />
+    </Layout>
+  );
 }

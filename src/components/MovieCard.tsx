@@ -14,10 +14,19 @@ export function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }
     >
       <Link to="/movie/$id" params={{ id: movie.id }} className="block">
         <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-card transition-all duration-300 group-hover:shadow-red group-hover:scale-[1.04] group-hover:-translate-y-1">
-          <div
-            className="absolute inset-0"
-            style={{ background: movie.posterGradient }}
-          />
+          {movie.posterUrl ? (
+            <img
+              src={movie.posterUrl}
+              alt={movie.title}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div
+              className="absolute inset-0"
+              style={{ background: movie.posterGradient }}
+            />
+          )}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_50%)]" />
           <div className="absolute inset-0 flex flex-col justify-between p-3">
             <div className="flex justify-between items-start">

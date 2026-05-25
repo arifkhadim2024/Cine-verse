@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Sparkles, Send, User, Bot } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
-import { searchMovies, movies, type Movie } from "@/data/movies";
+import { api } from "@/lib/api";
+import type { Movie } from "@/data/movies";
 
 export const Route = createFileRoute("/ai")({ component: AIPage });
 
@@ -21,40 +22,6 @@ const starterPrompts = [
   "Something sad and beautiful",
 ];
 
-function generateResponse(input: string): { text: string; recs: Movie[] } {
-  const q = input.toLowerCase();
-  let recs: Movie[] = [];
-  let intent = "Here are some hand-picked recommendations for you:";
-
-  if (q.includes("horror") || q.includes("scary") || q.includes("conjuring")) {
-    recs = movies.filter((m) => m.genres.includes("Horror") || m.mood.includes("dark")).slice(0, 4);
-    intent = "If you loved The Conjuring, these atmospheric chillers will keep you up:";
-  } else if (q.includes("comedy") || q.includes("funny") || q.includes("family")) {
-    recs = movies.filter((m) => m.genres.includes("Comedy") || m.mood.includes("funny") || m.mood.includes("feel-good")).slice(0, 4);
-    intent = "Perfect for a light evening — laughs guaranteed:";
-  } else if (q.includes("mind") || q.includes("bend") || q.includes("inception") || q.includes("cerebral")) {
-    recs = movies.filter((m) => m.mood.includes("mind bending") || m.mood.includes("cerebral")).slice(0, 4);
-    intent = "Brain-melting puzzles that reward re-watching:";
-  } else if (q.includes("sad") || q.includes("cry") || q.includes("emotional")) {
-    recs = movies.filter((m) => m.mood.includes("sad") || m.mood.includes("melancholic")).slice(0, 4);
-    intent = "Bring tissues — these will move you:";
-  } else if (q.includes("action") || q.includes("intense")) {
-    recs = movies.filter((m) => m.genres.includes("Action")).slice(0, 4);
-    intent = "Pure adrenaline. Strap in:";
-  } else if (q.includes("romance") || q.includes("love")) {
-    recs = movies.filter((m) => m.genres.includes("Romance")).slice(0, 4);
-    intent = "Pour the wine — here are some swoon-worthy picks:";
-  } else if (q.includes("anime")) {
-    recs = movies.filter((m) => m.genres.includes("Anime")).slice(0, 4);
-    intent = "Hand-drawn brilliance from across the spectrum:";
-  } else {
-    recs = searchMovies(input).slice(0, 4);
-    if (recs.length === 0) recs = movies.slice(0, 4);
-  }
-
-  return { text: intent, recs };
-}
-
 function AIPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -71,20 +38,37 @@ function AIPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
     const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      const { text: reply, recs } = generateResponse(text);
+
+    try {
+      const res = await api.ai.recommend(text);
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), role: "assistant", content: reply, recommendations: recs },
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: res.message,
+          recommendations: res.recommendations,
+        },
       ]);
+    } catch (error) {
+      console.error("AI recommendation error:", error);
+      setMessages((m) => [
+        ...m,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "Oops! My neural reel got tangled. Please try again or ask for another vibe.",
+        },
+      ]);
+    } finally {
       setTyping(false);
-    }, 800);
+    }
   };
 
   return (
@@ -130,7 +114,11 @@ function AIPage() {
                           className="group block"
                         >
                           <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-card group-hover:shadow-red group-hover:scale-105 transition-all">
-                            <div className="absolute inset-0" style={{ background: r.posterGradient }} />
+                            {r.posterUrl ? (
+                              <img src={r.posterUrl} alt={r.title} className="absolute inset-0 w-full h-full object-cover" />
+                            ) : (
+                              <div className="absolute inset-0" style={{ background: r.posterGradient }} />
+                            )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
                             <div className="absolute inset-x-2 bottom-2">
                               <p className="font-display text-sm leading-tight line-clamp-2">{r.title}</p>
@@ -164,7 +152,7 @@ function AIPage() {
                 <button
                   key={p}
                   onClick={() => send(p)}
-                  className="text-xs px-3 py-1.5 rounded-full glass hover:bg-accent transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-full glass hover:bg-accent transition-colors cursor-pointer"
                 >
                   {p}
                 </button>
@@ -180,12 +168,12 @@ function AIPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask anything cinematic…"
-              className="flex-1 bg-transparent outline-none px-3 py-2 text-sm placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent outline-none px-3 py-2 text-sm placeholder:text-muted-foreground text-white"
             />
             <button
               type="submit"
-              className="w-10 h-10 grid place-items-center rounded-full gradient-red text-primary-foreground shadow-red hover:scale-105 transition-transform disabled:opacity-50"
-              disabled={!input.trim()}
+              className="w-10 h-10 grid place-items-center rounded-full gradient-red text-primary-foreground shadow-red hover:scale-105 transition-transform disabled:opacity-50 cursor-pointer"
+              disabled={!input.trim() || typing}
             >
               <Send className="w-4 h-4" />
             </button>

@@ -11,9 +11,12 @@ const links = [
   { to: "/watchlist", label: "Watchlist", icon: Bookmark },
 ] as const;
 
+import { useAuth } from "../context/AuthContext";
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -66,19 +69,30 @@ export function Navbar() {
           >
             <Search className="w-4 h-4" />
           </Link>
-          <Link
-            to="/profile"
-            className="hidden sm:grid w-9 h-9 place-items-center rounded-full gradient-red shadow-red hover:scale-105 transition-transform"
-            aria-label="Profile"
-          >
-            <User className="w-4 h-4 text-primary-foreground" />
-          </Link>
-          <Link
-            to="/login"
-            className="hidden md:inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold gradient-red text-primary-foreground shadow-red hover:scale-[1.03] transition-transform"
-          >
-            Sign in
-          </Link>
+          {isAuthenticated && (
+            <Link
+              to="/profile"
+              className="hidden sm:grid w-9 h-9 place-items-center rounded-full gradient-red shadow-red hover:scale-105 transition-transform"
+              aria-label="Profile"
+            >
+              <User className="w-4 h-4 text-primary-foreground" />
+            </Link>
+          )}
+          {isAuthenticated ? (
+            <button
+              onClick={logout}
+              className="hidden md:inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold glass-strong hover:bg-accent hover:scale-[1.03] transition-transform cursor-pointer"
+            >
+              Sign out
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden md:inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold gradient-red text-primary-foreground shadow-red hover:scale-[1.03] transition-transform"
+            >
+              Sign in
+            </Link>
+          )}
           <button
             onClick={() => setOpen((v) => !v)}
             className="lg:hidden w-9 h-9 grid place-items-center rounded-full hover:bg-accent"
@@ -109,20 +123,31 @@ export function Navbar() {
                   {l.label}
                 </Link>
               ))}
-              <Link
-                to="/profile"
-                onClick={() => setOpen(false)}
-                className="px-3 py-2 rounded-md hover:bg-accent text-sm flex items-center gap-2"
-              >
-                <User className="w-4 h-4" /> Profile
-              </Link>
-              <Link
-                to="/login"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold gradient-red text-primary-foreground shadow-red"
-              >
-                Sign in
-              </Link>
+              {isAuthenticated && (
+                <Link
+                  to="/profile"
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2 rounded-md hover:bg-accent text-sm flex items-center gap-2"
+                >
+                  <User className="w-4 h-4" /> Profile
+                </Link>
+              )}
+              {isAuthenticated ? (
+                <button
+                  onClick={() => { logout(); setOpen(false); }}
+                  className="mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold glass-strong w-full cursor-pointer"
+                >
+                  Sign out
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold gradient-red text-primary-foreground shadow-red"
+                >
+                  Sign in
+                </Link>
+              )}
             </div>
           </motion.div>
         )}

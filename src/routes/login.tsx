@@ -3,10 +3,52 @@ import { Film } from "lucide-react";
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
+
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || (mode !== "forgot" && !password)) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (mode === "register" && !name) {
+      toast.error("Please enter your name.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        await login(email, password);
+        toast.success("Welcome back to CineVerse!");
+        navigate({ to: "/" });
+      } else if (mode === "register") {
+        await register(name, email, password);
+        toast.success("Account created successfully!");
+        navigate({ to: "/" });
+      } else {
+        toast.info("Password reset simulated. Check your console!");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -35,16 +77,27 @@ function LoginPage() {
               {mode === "forgot" && "We'll send a magic link to your email."}
             </p>
 
-            <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               {mode === "register" && (
                 <div>
                   <label className="text-xs uppercase tracking-widest text-muted-foreground">Name</label>
-                  <input className="mt-1.5 w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors" placeholder="Your full name" />
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1.5 w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors text-white"
+                    placeholder="Your full name"
+                  />
                 </div>
               )}
               <div>
                 <label className="text-xs uppercase tracking-widest text-muted-foreground">Email</label>
-                <input type="email" className="mt-1.5 w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors" placeholder="you@cineverse.com" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1.5 w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors text-white"
+                  placeholder="you@cineverse.com"
+                />
               </div>
               {mode !== "forgot" && (
                 <div>
@@ -54,14 +107,28 @@ function LoginPage() {
                       <button type="button" onClick={() => setMode("forgot")} className="text-xs text-primary hover:underline">Forgot?</button>
                     )}
                   </div>
-                  <input type="password" className="mt-1.5 w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors" placeholder="••••••••" />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="mt-1.5 w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors text-white"
+                    placeholder="••••••••"
+                  />
                 </div>
               )}
 
-              <button className="w-full rounded-lg gradient-red py-3 font-semibold text-primary-foreground shadow-red hover:scale-[1.02] transition-transform">
-                {mode === "login" && "Sign in"}
-                {mode === "register" && "Create account"}
-                {mode === "forgot" && "Send reset link"}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-lg gradient-red py-3 font-semibold text-primary-foreground shadow-red hover:scale-[1.02] transition-transform cursor-pointer disabled:opacity-50"
+              >
+                {loading ? "Authenticating..." : (
+                  <>
+                    {mode === "login" && "Sign in"}
+                    {mode === "register" && "Create account"}
+                    {mode === "forgot" && "Send reset link"}
+                  </>
+                )}
               </button>
             </form>
 

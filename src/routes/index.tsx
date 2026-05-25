@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import heroImg from "@/assets/hero-cinema.jpg";
 import { Layout } from "@/components/Layout";
 import { MovieRow } from "@/components/MovieRow";
-import { trending, topRated, continueWatching, genres } from "@/data/movies";
+import { continueWatching, genres } from "@/data/movies";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { RowSkeleton } from "@/components/SkeletonLoader";
+import { GenreSidebar } from "@/components/GenreSidebar";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
@@ -24,23 +28,81 @@ function HomePage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  const hero = trending[heroIndex];
+
+  const { data: trendingMovies = [], isLoading: loadingTrending } = useQuery({
+    queryKey: ["trendingMovies"],
+    queryFn: () => api.movies.getTrending(),
+  });
+
+  const { data: topRatedMovies = [], isLoading: loadingTopRated } = useQuery({
+    queryKey: ["topRatedMovies"],
+    queryFn: () => api.movies.getTopRated(),
+  });
+
+  const { data: upcomingMovies = [], isLoading: loadingUpcoming } = useQuery({
+    queryKey: ["upcomingMovies"],
+    queryFn: () => api.movies.getUpcoming(),
+  });
+
+  const { data: bollywoodMovies = [], isLoading: loadingBollywood } = useQuery({
+    queryKey: ["bollywoodMovies"],
+    queryFn: () => api.movies.getBollywood(),
+  });
+
+  const { data: koreanMovies = [], isLoading: loadingKorean } = useQuery({
+    queryKey: ["koreanMovies"],
+    queryFn: () => api.movies.getKorean(),
+  });
+
+  const { data: animeMovies = [], isLoading: loadingAnime } = useQuery({
+    queryKey: ["animeMovies"],
+    queryFn: () => api.movies.getAnime(),
+  });
+
+  const { data: actionMovies = [], isLoading: loadingAction } = useQuery({
+    queryKey: ["actionMovies"],
+    queryFn: () => api.movies.getByGenre(28),
+  });
+
+  const { data: comedyMovies = [], isLoading: loadingComedy } = useQuery({
+    queryKey: ["comedyMovies"],
+    queryFn: () => api.movies.getByGenre(35),
+  });
+
+  const { data: horrorMovies = [], isLoading: loadingHorror } = useQuery({
+    queryKey: ["horrorMovies"],
+    queryFn: () => api.movies.getByGenre(27),
+  });
+
+  const { data: romanceMovies = [], isLoading: loadingRomance } = useQuery({
+    queryKey: ["romanceMovies"],
+    queryFn: () => api.movies.getByGenre(10749),
+  });
+
+  const { data: sciFiMovies = [], isLoading: loadingSciFi } = useQuery({
+    queryKey: ["sciFiMovies"],
+    queryFn: () => api.movies.getByGenre(878),
+  });
+
+  const hero = trendingMovies[heroIndex] || continueWatching[0];
 
   useEffect(() => {
-    const t = setInterval(() => setHeroIndex((i) => (i + 1) % trending.length), 6000);
+    if (trendingMovies.length === 0) return;
+    const t = setInterval(() => setHeroIndex((i) => (i + 1) % trendingMovies.length), 6000);
     return () => clearInterval(t);
-  }, []);
+  }, [trendingMovies.length]);
 
   return (
     <Layout>
+      <GenreSidebar />
       {/* HERO */}
       <section className="relative h-[92vh] min-h-[600px] w-full overflow-hidden">
         <img
-          src={heroImg}
+          src={hero.backdropUrl || heroImg}
           alt=""
           width={1920}
           height={1080}
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          className="absolute inset-0 w-full h-full object-cover opacity-50 transition-all duration-1000"
         />
         <AnimatePresence mode="wait">
           <motion.div
@@ -108,7 +170,7 @@ function HomePage() {
           </AnimatePresence>
 
           <div className="absolute right-4 sm:right-6 bottom-20 sm:bottom-28 hidden md:flex flex-col gap-2">
-            {trending.map((_, i) => (
+            {trendingMovies.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setHeroIndex(i)}
@@ -213,9 +275,89 @@ function HomePage() {
         </Link>
       </section>
 
-      <MovieRow title="Trending Now" subtitle="What everyone's watching this week" movies={trending} />
-      <MovieRow title="Top Rated" subtitle="Critically acclaimed masterpieces" movies={topRated} />
+      {loadingTrending ? (
+        <RowSkeleton count={6} />
+      ) : (
+        <MovieRow title="Trending Now" subtitle="What everyone's watching this week" movies={trendingMovies} />
+      )}
+
+      {loadingTopRated ? (
+        <RowSkeleton count={6} />
+      ) : (
+        <MovieRow title="Top Rated" subtitle="Critically acclaimed masterpieces" movies={topRatedMovies} />
+      )}
+
+      {loadingUpcoming ? (
+        <RowSkeleton count={6} />
+      ) : (
+        <MovieRow title="Upcoming Releases" subtitle="Anticipated blockbusters coming soon" movies={upcomingMovies} />
+      )}
+
       <MovieRow title="Continue Watching" subtitle="Pick up where you left off" movies={continueWatching} />
+
+      {loadingBollywood ? (
+        <RowSkeleton count={6} />
+      ) : (
+        bollywoodMovies.length > 0 && (
+          <MovieRow title="Bollywood Hits" subtitle="Epic Hindi drama and musical blockbusters" movies={bollywoodMovies} />
+        )
+      )}
+
+      {loadingKorean ? (
+        <RowSkeleton count={6} />
+      ) : (
+        koreanMovies.length > 0 && (
+          <MovieRow title="Korean Cinema" subtitle="K-Drama, action thrillers, and award winners" movies={koreanMovies} />
+        )
+      )}
+
+      {loadingAnime ? (
+        <RowSkeleton count={6} />
+      ) : (
+        animeMovies.length > 0 && (
+          <MovieRow title="Anime Movies" subtitle="Stunning hand-drawn Japanese animation classics" movies={animeMovies} />
+        )
+      )}
+
+      {loadingAction ? (
+        <RowSkeleton count={6} />
+      ) : (
+        actionMovies.length > 0 && (
+          <MovieRow title="Action Blockbusters" subtitle="High-octane explosions and thrilling stunts" movies={actionMovies} />
+        )
+      )}
+
+      {loadingComedy ? (
+        <RowSkeleton count={6} />
+      ) : (
+        comedyMovies.length > 0 && (
+          <MovieRow title="Laughter & Comedy" subtitle="Lighthearted laughs and hilarious scenarios" movies={comedyMovies} />
+        )
+      )}
+
+      {loadingHorror ? (
+        <RowSkeleton count={6} />
+      ) : (
+        horrorMovies.length > 0 && (
+          <MovieRow title="Midnight Horrors" subtitle="Creepy tales, jump scares, and supernatural fears" movies={horrorMovies} />
+        )
+      )}
+
+      {loadingRomance ? (
+        <RowSkeleton count={6} />
+      ) : (
+        romanceMovies.length > 0 && (
+          <MovieRow title="Romantic Stories" subtitle="Heartfelt romance, passionate love stories, and dramas" movies={romanceMovies} />
+        )
+      )}
+
+      {loadingSciFi ? (
+        <RowSkeleton count={6} />
+      ) : (
+        sciFiMovies.length > 0 && (
+          <MovieRow title="Sci-Fi & Fantasy" subtitle="Futuristic adventures, alien worlds, and tech dystopias" movies={sciFiMovies} />
+        )
+      )}
     </Layout>
   );
 }

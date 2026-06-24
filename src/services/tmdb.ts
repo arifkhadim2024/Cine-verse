@@ -1,6 +1,9 @@
 import { movies as mockMovies, Movie } from "@/data/movies";
 
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || "";
+const TMDB_API_KEY =
+  typeof window !== "undefined"
+    ? localStorage.getItem("cineverse_tmdb_key") || import.meta.env.VITE_TMDB_API_KEY || ""
+    : import.meta.env.VITE_TMDB_API_KEY || "";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 // Map TMDB genre IDs to our category names
@@ -47,6 +50,57 @@ export interface RichMovie extends Movie {
   spokenLanguages?: string[];
 }
 
+export interface TmdbMovie {
+  id: number;
+  title: string;
+  release_date?: string;
+  genre_ids?: number[];
+  vote_average?: number;
+  runtime?: number;
+  overview?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+  tagline?: string;
+  popularity?: number;
+  production_companies?: { name: string }[];
+  spoken_languages?: { english_name: string }[];
+  genres?: { name: string }[];
+}
+
+export interface TmdbCastMember {
+  name: string;
+  character: string;
+  profile_path?: string;
+}
+
+export interface TmdbCrewMember {
+  job: string;
+  name: string;
+}
+
+export interface TmdbCredits {
+  cast: TmdbCastMember[];
+  crew: TmdbCrewMember[];
+}
+
+export interface TmdbVideo {
+  type: string;
+  site: string;
+  name?: string;
+  key: string;
+}
+
+export interface TmdbVideosResponse {
+  results: TmdbVideo[];
+}
+
+export interface TmdbPageResponse<T> {
+  page: number;
+  results: T[];
+  total_pages: number;
+  total_results: number;
+}
+
 function generateGradients(title: string) {
   let hash = 0;
   for (let i = 0; i < title.length; i++) {
@@ -60,11 +114,15 @@ function generateGradients(title: string) {
   };
 }
 
-function mapTmdbMovie(m: any): RichMovie {
+function mapTmdbMovie(m: TmdbMovie): RichMovie {
   const gradients = generateGradients(m.title);
   const releaseYear = m.release_date ? new Date(m.release_date).getFullYear() : 2024;
-  const genres = m.genre_ids ? m.genre_ids.map((id: number) => GENRE_MAP[id] || "Drama").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) : ["Drama"];
-  
+  const genres = m.genre_ids
+    ? m.genre_ids
+        .map((id: number) => GENRE_MAP[id] || "Drama")
+        .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
+    : ["Drama"];
+
   return {
     id: String(m.id),
     title: m.title,
@@ -90,7 +148,7 @@ async function fetchFromTmdb<T>(path: string, params: Record<string, string> = {
     api_key: TMDB_API_KEY,
     ...params,
   }).toString();
-  
+
   const response = await fetch(`${TMDB_BASE_URL}${path}?${queryParams}`);
   if (!response.ok) {
     throw new Error(`TMDB request failed: ${response.status}`);
@@ -103,15 +161,19 @@ export async function searchMovies(query: string, page: number = 1): Promise<Ric
   if (!query) return getPopularMovies(page);
   if (!TMDB_API_KEY) {
     const lower = query.toLowerCase().trim();
-    return mockMovies.filter((m) =>
-      m.title.toLowerCase().includes(lower) ||
-      m.genres.some((g) => g.toLowerCase().includes(lower)) ||
-      m.cast.some((c) => c.toLowerCase().includes(lower)) ||
-      m.description.toLowerCase().includes(lower)
+    return mockMovies.filter(
+      (m) =>
+        m.title.toLowerCase().includes(lower) ||
+        m.genres.some((g) => g.toLowerCase().includes(lower)) ||
+        m.cast.some((c) => c.toLowerCase().includes(lower)) ||
+        m.description.toLowerCase().includes(lower),
     );
   }
   try {
-    const data = await fetchFromTmdb<any>("/search/movie", { query, page: String(page) });
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/search/movie", {
+      query,
+      page: String(page),
+    });
     return data.results.map(mapTmdbMovie);
   } catch (error) {
     console.error("Error searchMovies:", error);
@@ -123,7 +185,9 @@ export async function searchMovies(query: string, page: number = 1): Promise<Ric
 export async function getTrendingMovies(page: number = 1): Promise<RichMovie[]> {
   if (!TMDB_API_KEY) return mockMovies.slice(0, 6);
   try {
-    const data = await fetchFromTmdb<any>("/trending/movie/week", { page: String(page) });
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/trending/movie/week", {
+      page: String(page),
+    });
     return data.results.slice(0, 10).map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getTrendingMovies:", error);
@@ -139,52 +203,68 @@ export async function getMovieDetails(id: string): Promise<RichMovie> {
     if (!movie) throw new Error("Movie not found");
     return movie;
   }
-  
+
   try {
-    const details = await fetchFromTmdb<any>(`/movie/${id}`);
-    const credits = await fetchFromTmdb<any>(`/movie/${id}/credits`);
+    const details = await fetchFromTmdb<TmdbMovie>(`/movie/${id}`);
+    const credits = await fetchFromTmdb<TmdbCredits>(`/movie/${id}/credits`);
     const trailerKey = await getMovieVideos(id);
-    
+
+    let logoUrl: string | undefined;
+    try {
+      const images = await fetchFromTmdb<{ logos?: { file_path: string }[] }>(`/movie/${id}/images`, {
+        include_image_language: "en,null",
+      });
+      const logoObj = images.logos?.find((l) => l.file_path);
+      if (logoObj) {
+        logoUrl = `https://image.tmdb.org/t/p/w500${logoObj.file_path}`;
+      }
+    } catch (e) {
+      console.warn("Failed to fetch movie logo", e);
+    }
+
     const mapped = mapTmdbMovie(details);
-    
+    mapped.logoUrl = logoUrl;
+
     // Populate cast & director details
     const crew = credits.crew || [];
     const cast = credits.cast || [];
-    const directorObj = crew.find((member: any) => member.job === "Director");
+    const directorObj = crew.find((member) => member.job === "Director");
     mapped.director = directorObj ? directorObj.name : "Unknown";
-    
+
     // Map cast details (with profile URLs)
-    mapped.cast = cast.slice(0, 5).map((member: any) => member.name);
-    mapped.castDetails = cast.slice(0, 12).map((c: any) => ({
+    mapped.cast = cast.slice(0, 5).map((member) => member.name);
+    mapped.castDetails = cast.slice(0, 12).map((c) => ({
       name: c.name,
       character: c.character,
       profileUrl: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : undefined,
     }));
-    
+
     // Rich properties
     mapped.tagline = details.tagline || "";
-    mapped.releaseDate = details.release_date ? new Date(details.release_date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }) : undefined;
+    mapped.releaseDate = details.release_date
+      ? new Date(details.release_date).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : undefined;
     mapped.popularity = details.popularity;
-    
+
     if (details.production_companies) {
-      mapped.productionCompanies = details.production_companies.map((c: any) => c.name);
+      mapped.productionCompanies = details.production_companies.map((c) => c.name);
     }
-    
+
     if (details.spoken_languages) {
-      mapped.spokenLanguages = details.spoken_languages.map((l: any) => l.english_name);
+      mapped.spokenLanguages = details.spoken_languages.map((l) => l.english_name);
     }
-    
+
     if (details.genres) {
-      mapped.genres = details.genres.map((g: any) => g.name);
+      mapped.genres = details.genres.map((g) => g.name);
     }
-    
+
     // Attach trailer key
     mapped.trailerId = trailerKey;
-    
+
     return mapped;
   } catch (error) {
     console.error("Error getMovieDetails:", error);
@@ -201,29 +281,28 @@ export async function getMovieVideos(id: string): Promise<string | undefined> {
     return movie?.trailerId;
   }
   try {
-    const data = await fetchFromTmdb<any>(`/movie/${id}/videos`);
+    const data = await fetchFromTmdb<TmdbVideosResponse>(`/movie/${id}/videos`);
     const results = data.results || [];
-    
+
     // Try to find official youtube trailer
     const officialTrailer = results.find(
-      (v: any) => v.type === "Trailer" && v.site === "YouTube" && v.name?.toLowerCase().includes("official")
+      (v) =>
+        v.type === "Trailer" && v.site === "YouTube" && v.name?.toLowerCase().includes("official"),
     );
     if (officialTrailer) return officialTrailer.key;
-    
+
     // Fall back to any youtube trailer
-    const generalTrailer = results.find(
-      (v: any) => v.type === "Trailer" && v.site === "YouTube"
-    );
+    const generalTrailer = results.find((v) => v.type === "Trailer" && v.site === "YouTube");
     if (generalTrailer) return generalTrailer.key;
 
     // Fall back to teaser or clip on youtube
     const teaserOrClip = results.find(
-      (v: any) => (v.type === "Teaser" || v.type === "Clip") && v.site === "YouTube"
+      (v) => (v.type === "Teaser" || v.type === "Clip") && v.site === "YouTube",
     );
     if (teaserOrClip) return teaserOrClip.key;
-    
+
     // Fall back to first youtube video
-    const firstYoutube = results.find((v: any) => v.site === "YouTube");
+    const firstYoutube = results.find((v) => v.site === "YouTube");
     return firstYoutube?.key;
   } catch (error) {
     console.error("Error getMovieVideos:", error);
@@ -239,7 +318,7 @@ export async function getMoviesByGenre(genreId: number, page: number = 1): Promi
     return mockMovies.filter((m) => m.genres.includes(genreName));
   }
   try {
-    const data = await fetchFromTmdb<any>("/discover/movie", {
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/discover/movie", {
       with_genres: String(genreId),
       sort_by: "popularity.desc",
       page: String(page),
@@ -257,7 +336,7 @@ export async function getMoviesByGenre(genreId: number, page: number = 1): Promi
 export async function getBollywoodMovies(page: number = 1): Promise<RichMovie[]> {
   if (!TMDB_API_KEY) return mockMovies.slice(0, 5);
   try {
-    const data = await fetchFromTmdb<any>("/discover/movie", {
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/discover/movie", {
       with_original_language: "hi",
       sort_by: "popularity.desc",
       page: String(page),
@@ -273,7 +352,7 @@ export async function getBollywoodMovies(page: number = 1): Promise<RichMovie[]>
 export async function getKoreanMovies(page: number = 1): Promise<RichMovie[]> {
   if (!TMDB_API_KEY) return mockMovies.slice(3, 8);
   try {
-    const data = await fetchFromTmdb<any>("/discover/movie", {
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/discover/movie", {
       with_original_language: "ko",
       sort_by: "popularity.desc",
       page: String(page),
@@ -289,7 +368,7 @@ export async function getKoreanMovies(page: number = 1): Promise<RichMovie[]> {
 export async function getAnimeMovies(page: number = 1): Promise<RichMovie[]> {
   if (!TMDB_API_KEY) return mockMovies.filter((m) => m.genres.includes("Anime"));
   try {
-    const data = await fetchFromTmdb<any>("/discover/movie", {
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/discover/movie", {
       with_genres: "16",
       with_original_language: "ja",
       sort_by: "popularity.desc",
@@ -306,7 +385,9 @@ export async function getAnimeMovies(page: number = 1): Promise<RichMovie[]> {
 export async function getPopularMovies(page: number = 1): Promise<RichMovie[]> {
   if (!TMDB_API_KEY) return mockMovies.slice(4, 10);
   try {
-    const data = await fetchFromTmdb<any>("/movie/popular", { page: String(page) });
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/movie/popular", {
+      page: String(page),
+    });
     return data.results.slice(0, 10).map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getPopularMovies:", error);
@@ -315,20 +396,31 @@ export async function getPopularMovies(page: number = 1): Promise<RichMovie[]> {
 }
 
 export async function getTopRatedMovies(page: number = 1): Promise<RichMovie[]> {
-  if (!TMDB_API_KEY) return mockMovies.slice().sort((a, b) => b.imdb - a.imdb).slice(0, 8);
+  if (!TMDB_API_KEY)
+    return mockMovies
+      .slice()
+      .sort((a, b) => b.imdb - a.imdb)
+      .slice(0, 8);
   try {
-    const data = await fetchFromTmdb<any>("/movie/top_rated", { page: String(page) });
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/movie/top_rated", {
+      page: String(page),
+    });
     return data.results.slice(0, 10).map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getTopRatedMovies:", error);
-    return mockMovies.slice().sort((a, b) => b.imdb - a.imdb).slice(0, 8);
+    return mockMovies
+      .slice()
+      .sort((a, b) => b.imdb - a.imdb)
+      .slice(0, 8);
   }
 }
 
 export async function getUpcomingMovies(page: number = 1): Promise<RichMovie[]> {
   if (!TMDB_API_KEY) return mockMovies.slice(2, 8);
   try {
-    const data = await fetchFromTmdb<any>("/movie/upcoming", { page: String(page) });
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>("/movie/upcoming", {
+      page: String(page),
+    });
     return data.results.slice(0, 10).map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getUpcomingMovies:", error);
@@ -345,9 +437,9 @@ export async function getSimilarMovies(id: string): Promise<RichMovie[]> {
       .filter((x) => x.id !== id && x.genres.some((g) => movie.genres.includes(g)))
       .slice(0, 6);
   }
-  
+
   try {
-    const data = await fetchFromTmdb<any>(`/movie/${id}/similar`);
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>(`/movie/${id}/similar`);
     return data.results.slice(0, 6).map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getSimilarMovies:", error);
@@ -360,9 +452,9 @@ export async function getMovieRecommendations(id: string): Promise<RichMovie[]> 
   if (isMockId || !TMDB_API_KEY) {
     return getSimilarMovies(id);
   }
-  
+
   try {
-    const data = await fetchFromTmdb<any>(`/movie/${id}/recommendations`);
+    const data = await fetchFromTmdb<TmdbPageResponse<TmdbMovie>>(`/movie/${id}/recommendations`);
     return data.results.slice(0, 6).map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getMovieRecommendations:", error);

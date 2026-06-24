@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { api } from "@/lib/api";
+import { Movie } from "@/data/movies";
 
 type UserType = {
   id: string;
   name: string;
   email: string;
-  watchlist: any[];
-  favorites: any[];
+  watchlist: Movie[];
+  favorites: Movie[];
 };
 
 type AuthContextType = {
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         return;
       }
-      
+
       const token = localStorage.getItem("cineverse_token");
       if (!token) {
         setLoading(false);
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const userData = await api.auth.me();
         setUser({
-          id: userData._id || userData.id,
+          id: userData._id || userData.id || "",
           name: userData.name,
           email: userData.email,
           watchlist: userData.watchlist || [],
@@ -63,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await api.auth.login({ email, password });
       localStorage.setItem("cineverse_token", res.token);
       setUser({
-        id: res.user.id || res.user._id,
+        id: res.user.id,
         name: res.user.name,
         email: res.user.email,
         watchlist: res.user.watchlist || [],
@@ -83,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await api.auth.register({ name, email, password });
       localStorage.setItem("cineverse_token", res.token);
       setUser({
-        id: res.user.id || res.user._id,
+        id: res.user.id,
         name: res.user.name,
         email: res.user.email,
         watchlist: res.user.watchlist || [],

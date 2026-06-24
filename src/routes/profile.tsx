@@ -64,7 +64,9 @@ function ProfilePage() {
           <div className="flex-1">
             <h1 className="font-display text-5xl sm:text-6xl">{currentUser.name}</h1>
             <p className="text-muted-foreground mt-1">
-              {isAuthenticated ? `@${currentUser.email.split("@")[0]} · CineVerse member` : "Temporary profile · List stored locally"}
+              {isAuthenticated
+                ? `@${currentUser.email.split("@")[0]} · CineVerse member`
+                : "Temporary profile · List stored locally"}
             </p>
           </div>
           <div className="flex gap-2">
@@ -94,7 +96,9 @@ function ProfilePage() {
             <div key={s.label} className="glass-strong rounded-2xl p-5 text-center sm:text-left">
               <s.icon className="w-5 h-5 text-primary mx-auto sm:mx-0" />
               <div className="font-display text-4xl mt-2">{s.value}</div>
-              <div className="text-xs uppercase tracking-widest text-muted-foreground">{s.label}</div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground">
+                {s.label}
+              </div>
             </div>
           ))}
         </div>

@@ -27,7 +27,8 @@ function AIPage() {
     {
       id: "intro",
       role: "assistant",
-      content: "Hey, I'm your CineVerse AI. Tell me your mood, a movie you loved, or anything you're craving — I'll find the perfect watch.",
+      content:
+        "Hey, I'm your CineVerse AI. Tell me your mood, a movie you loved, or anything you're craving — I'll find the perfect watch.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -78,7 +79,9 @@ function AIPage() {
           <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs uppercase tracking-widest text-primary">
             <Sparkles className="w-3.5 h-3.5" /> AI Assistant
           </div>
-          <h1 className="font-display text-5xl sm:text-7xl mt-4">Your Cinematic <span className="text-gradient-red">Co-Pilot</span></h1>
+          <h1 className="font-display text-5xl sm:text-7xl mt-4">
+            Your Cinematic <span className="text-gradient-red">Co-Pilot</span>
+          </h1>
           <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
             Describe a vibe, name a movie you loved, or ask for the perfect Friday night pick.
           </p>
@@ -93,15 +96,23 @@ function AIPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
               >
-                <div className={`w-9 h-9 shrink-0 rounded-full grid place-items-center ${
-                  m.role === "user" ? "bg-accent" : "gradient-red shadow-red"
-                }`}>
-                  {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-primary-foreground" />}
+                <div
+                  className={`w-9 h-9 shrink-0 rounded-full grid place-items-center ${
+                    m.role === "user" ? "bg-accent" : "gradient-red shadow-red"
+                  }`}
+                >
+                  {m.role === "user" ? (
+                    <User className="w-4 h-4" />
+                  ) : (
+                    <Bot className="w-4 h-4 text-primary-foreground" />
+                  )}
                 </div>
                 <div className={`max-w-[80%] ${m.role === "user" ? "text-right" : ""}`}>
-                  <div className={`inline-block rounded-2xl px-4 py-2.5 text-sm ${
-                    m.role === "user" ? "gradient-red text-primary-foreground" : "glass"
-                  }`}>
+                  <div
+                    className={`inline-block rounded-2xl px-4 py-2.5 text-sm ${
+                      m.role === "user" ? "gradient-red text-primary-foreground" : "glass"
+                    }`}
+                  >
                     {m.content}
                   </div>
                   {m.recommendations && m.recommendations.length > 0 && (
@@ -115,14 +126,25 @@ function AIPage() {
                         >
                           <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-card group-hover:shadow-red group-hover:scale-105 transition-all">
                             {r.posterUrl ? (
-                              <img src={r.posterUrl} alt={r.title} className="absolute inset-0 w-full h-full object-cover" />
+                              <img
+                                src={r.posterUrl}
+                                alt={r.title}
+                                className="absolute inset-0 w-full h-full object-cover"
+                              />
                             ) : (
-                              <div className="absolute inset-0" style={{ background: r.posterGradient }} />
+                              <div
+                                className="absolute inset-0"
+                                style={{ background: r.posterGradient }}
+                              />
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
                             <div className="absolute inset-x-2 bottom-2">
-                              <p className="font-display text-sm leading-tight line-clamp-2">{r.title}</p>
-                              <p className="text-[10px] text-white/70">★ {r.imdb} · {r.year}</p>
+                              <p className="font-display text-sm leading-tight line-clamp-2">
+                                {r.title}
+                              </p>
+                              <p className="text-[10px] text-white/70">
+                                ★ {r.imdb} · {r.year}
+                              </p>
                             </div>
                           </div>
                         </Link>
@@ -139,7 +161,11 @@ function AIPage() {
                 </div>
                 <div className="glass rounded-2xl px-4 py-3 flex gap-1">
                   {[0, 1, 2].map((i) => (
-                    <span key={i} className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    <span
+                      key={i}
+                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    />
                   ))}
                 </div>
               </div>
@@ -161,7 +187,10 @@ function AIPage() {
           )}
 
           <form
-            onSubmit={(e) => { e.preventDefault(); send(input); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
+            }}
             className="border-t border-border/60 p-3 flex gap-2"
           >
             <input

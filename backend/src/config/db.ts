@@ -7,7 +7,8 @@ export async function connectDB() {
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("MongoDB connection error:", error);
-    // Exit process with failure
-    process.exit(1);
+    console.warn(
+      "WARNING: Running without database. Authentication and persistent watchlist features will be disabled.",
+    );
   }
 }

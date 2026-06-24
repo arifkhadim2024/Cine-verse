@@ -48,12 +48,12 @@ export function DetailSkeleton() {
     <div className="relative w-full min-h-screen bg-background">
       {/* Banner backdrop skeleton */}
       <div className="h-[70vh] min-h-[500px] bg-accent/10 animate-pulse relative" />
-      
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 -mt-64 sm:-mt-72 relative z-10">
         <div className="grid md:grid-cols-[280px_1fr] gap-8">
           {/* Poster placeholder */}
           <div className="aspect-[2/3] rounded-2xl bg-accent/20 animate-pulse border border-white/5 shadow-lg" />
-          
+
           {/* Info placeholder */}
           <div className="space-y-6">
             <div className="flex gap-2">
@@ -61,18 +61,18 @@ export function DetailSkeleton() {
               <div className="w-16 h-6 rounded-full bg-accent/20 animate-pulse" />
             </div>
             <div className="w-2/3 h-16 rounded bg-accent/20 animate-pulse" />
-            
+
             <div className="flex gap-4">
               <div className="w-24 h-10 rounded bg-accent/20 animate-pulse" />
               <div className="w-24 h-10 rounded bg-accent/20 animate-pulse" />
             </div>
-            
+
             <div className="space-y-2">
               <div className="w-full h-4 rounded bg-accent/25 animate-pulse" />
               <div className="w-full h-4 rounded bg-accent/25 animate-pulse" />
               <div className="w-4/5 h-4 rounded bg-accent/25 animate-pulse" />
             </div>
-            
+
             <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-white/5">
               <div className="w-32 h-10 rounded bg-accent/15 animate-pulse" />
               <div className="w-32 h-10 rounded bg-accent/15 animate-pulse" />

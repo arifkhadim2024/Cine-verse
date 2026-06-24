@@ -24,7 +24,7 @@ export function GenreSidebar() {
                 Explore Genres
               </span>
             </div>
-            
+
             {Object.entries(GENRE_IDS).map(([name, id]) => (
               <Link
                 key={id}
@@ -48,7 +48,11 @@ export function GenreSidebar() {
         className="w-10 h-10 rounded-full glass border border-white/10 hover:border-primary/50 text-white grid place-items-center ml-2 hover:scale-105 transition-all shadow-red"
         aria-label="Toggle Genre Sidebar"
       >
-        {isOpen ? <ChevronLeft className="w-5 h-5" /> : <Compass className="w-5 h-5 text-primary animate-pulse" />}
+        {isOpen ? (
+          <ChevronLeft className="w-5 h-5" />
+        ) : (
+          <Compass className="w-5 h-5 text-primary animate-pulse" />
+        )}
       </button>
     </div>
   );

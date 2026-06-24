@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret_key_1234567890_cine
 
 // @route   POST api/auth/register
 // @desc    Register user
-router.post("/register", async (req, res): Promise<any> => {
+router.post("/register", async (req, res): Promise<Response | void> => {
   const { name, email, password } = req.body;
 
   try {
@@ -52,7 +52,7 @@ router.post("/register", async (req, res): Promise<any> => {
 
 // @route   POST api/auth/login
 // @desc    Authenticate user & get token
-router.post("/login", async (req, res): Promise<any> => {
+router.post("/login", async (req, res): Promise<Response | void> => {
   const { email, password } = req.body;
 
   try {
@@ -91,17 +91,21 @@ router.post("/login", async (req, res): Promise<any> => {
 
 // @route   GET api/auth/me
 // @desc    Get user data
-router.get("/me", authMiddleware, async (req: AuthRequest, res: Response): Promise<any> => {
-  try {
-    const user = await User.findById(req.userId).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+router.get(
+  "/me",
+  authMiddleware,
+  async (req: AuthRequest, res: Response): Promise<Response | void> => {
+    try {
+      const user = await User.findById(req.userId).select("-password");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return res.json(user);
+    } catch (error) {
+      console.error("Auth me error:", error);
+      return res.status(500).json({ message: "Server error" });
     }
-    return res.json(user);
-  } catch (error) {
-    console.error("Auth me error:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
+  },
+);
 
 export default router;

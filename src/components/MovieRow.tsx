@@ -3,7 +3,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MovieCard } from "./MovieCard";
 import type { Movie } from "@/data/movies";
 
-export function MovieRow({ title, movies, subtitle }: { title: string; movies: Movie[]; subtitle?: string }) {
+export function MovieRow({
+  title,
+  movies,
+  subtitle,
+}: {
+  title: string;
+  movies: Movie[];
+  subtitle?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (dir: number) => {
     ref.current?.scrollBy({ left: dir * (ref.current.clientWidth * 0.8), behavior: "smooth" });
@@ -16,10 +24,16 @@ export function MovieRow({ title, movies, subtitle }: { title: string; movies: M
           {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
         </div>
         <div className="hidden sm:flex gap-2">
-          <button onClick={() => scroll(-1)} className="w-9 h-9 grid place-items-center rounded-full glass hover:bg-primary hover:text-primary-foreground transition-colors">
+          <button
+            onClick={() => scroll(-1)}
+            className="w-9 h-9 grid place-items-center rounded-full glass hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={() => scroll(1)} className="w-9 h-9 grid place-items-center rounded-full glass hover:bg-primary hover:text-primary-foreground transition-colors">
+          <button
+            onClick={() => scroll(1)}
+            className="w-9 h-9 grid place-items-center rounded-full glass hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>

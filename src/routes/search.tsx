@@ -18,7 +18,16 @@ export const Route = createFileRoute("/search")({
   }),
 });
 
-const moodTags = ["sad", "funny", "mind bending", "dark", "feel-good", "stylish", "intense", "romantic"];
+const moodTags = [
+  "sad",
+  "funny",
+  "mind bending",
+  "dark",
+  "feel-good",
+  "stylish",
+  "intense",
+  "romantic",
+];
 
 function SearchPage() {
   const { q } = Route.useSearch();
@@ -40,7 +49,11 @@ function SearchPage() {
     setPage(1);
   }, [effective]);
 
-  const { data: resultsData, isLoading, isFetching } = useQuery({
+  const {
+    data: resultsData,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: ["movieSearch", effective, page],
     queryFn: () => api.movies.search(effective, page),
   });
@@ -74,7 +87,9 @@ function SearchPage() {
     <Layout>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-28 pb-10">
         <h1 className="font-display text-4xl sm:text-6xl">Find your next film</h1>
-        <p className="text-muted-foreground mt-2">Search by title, actor, director, genre, or mood.</p>
+        <p className="text-muted-foreground mt-2">
+          Search by title, actor, director, genre, or mood.
+        </p>
 
         <div className="mt-6 relative">
           <form
@@ -85,12 +100,21 @@ function SearchPage() {
             <input
               autoFocus
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setActiveFilter(null); }}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setActiveFilter(null);
+              }}
               placeholder="Try 'Pugh', 'Sci-Fi', or 'mind bending'…"
               className="flex-1 bg-transparent outline-none text-base py-3 placeholder:text-muted-foreground text-white"
             />
             {query && (
-              <button onClick={() => { setQuery(""); setActiveFilter(null); }} className="w-9 h-9 grid place-items-center rounded-full hover:bg-accent cursor-pointer">
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setActiveFilter(null);
+                }}
+                className="w-9 h-9 grid place-items-center rounded-full hover:bg-accent cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -103,7 +127,10 @@ function SearchPage() {
               {suggestions.map((s) => (
                 <button
                   key={s}
-                  onClick={() => { setQuery(s); setActiveFilter(s); }}
+                  onClick={() => {
+                    setQuery(s);
+                    setActiveFilter(s);
+                  }}
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-accent text-sm cursor-pointer"
                 >
                   {s}
@@ -119,7 +146,10 @@ function SearchPage() {
             {genres.map((g) => (
               <button
                 key={g}
-                onClick={() => { setQuery(g); setActiveFilter(g); }}
+                onClick={() => {
+                  setQuery(g);
+                  setActiveFilter(g);
+                }}
                 className={`px-3.5 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
                   activeFilter === g
                     ? "gradient-red text-primary-foreground border-transparent shadow-red"
@@ -130,12 +160,17 @@ function SearchPage() {
               </button>
             ))}
           </div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2 mt-5">Moods</div>
+          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2 mt-5">
+            Moods
+          </div>
           <div className="flex flex-wrap gap-2">
             {moodTags.map((m) => (
               <button
                 key={m}
-                onClick={() => { setQuery(m); setActiveFilter(m); }}
+                onClick={() => {
+                  setQuery(m);
+                  setActiveFilter(m);
+                }}
                 className={`px-3.5 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
                   activeFilter === m
                     ? "gradient-red text-primary-foreground border-transparent shadow-red"
@@ -161,7 +196,10 @@ function SearchPage() {
           ) : moviesList.length === 0 ? (
             <div className="glass rounded-2xl p-10 text-center">
               <p className="text-muted-foreground">No matches. Try a different mood or genre.</p>
-              <Link to="/ai" className="inline-flex items-center gap-2 mt-4 rounded-md gradient-red px-4 py-2 text-sm font-semibold text-primary-foreground shadow-red">
+              <Link
+                to="/ai"
+                className="inline-flex items-center gap-2 mt-4 rounded-md gradient-red px-4 py-2 text-sm font-semibold text-primary-foreground shadow-red"
+              >
                 <Sparkles className="w-4 h-4" /> Ask the AI Assistant
               </Link>
             </div>
@@ -172,7 +210,7 @@ function SearchPage() {
                   <MovieCard key={`${m.id}-${i}`} movie={m} index={i} />
                 ))}
               </div>
-              
+
               {moviesList.length >= 8 && (
                 <div className="mt-12 flex justify-center">
                   <button

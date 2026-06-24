@@ -16,7 +16,9 @@ export const Route = createFileRoute("/movie/$id")({
     <Layout>
       <div className="pt-32 text-center">
         <h1 className="font-display text-4xl">Movie not found</h1>
-        <Link to="/" className="text-primary mt-4 inline-block">Back home</Link>
+        <Link to="/" className="text-primary mt-4 inline-block">
+          Back home
+        </Link>
       </div>
     </Layout>
   ),
@@ -29,7 +31,11 @@ function MovieDetailsPage() {
   const [showTrailer, setShowTrailer] = useState(false);
 
   // Fetch movie details
-  const { data: movie, isLoading, error } = useQuery({
+  const {
+    data: movie,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["movieDetails", id],
     queryFn: () => api.movies.getDetails(id),
   });
@@ -78,8 +84,9 @@ function MovieDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["watchlist"] });
       toast.success(isSaved ? "Removed from watchlist" : "Added to watchlist");
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to update watchlist");
+    onError: (err) => {
+      const error = err as Error;
+      toast.error(error.message || "Failed to update watchlist");
     },
   });
 
@@ -96,8 +103,9 @@ function MovieDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["favorites"] });
       toast.success(isLiked ? "Removed from favorites" : "Added to favorites");
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to update favorites");
+    onError: (err) => {
+      const error = err as Error;
+      toast.error(error.message || "Failed to update favorites");
     },
   });
 
@@ -145,7 +153,10 @@ function MovieDetailsPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_60%)]" />
         <div className="absolute inset-0 gradient-hero" />
         <div className="absolute top-24 left-4 sm:left-6">
-          <Link to="/" className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 text-sm hover:bg-accent transition-colors">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 text-sm hover:bg-accent transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
         </div>
@@ -155,11 +166,16 @@ function MovieDetailsPage() {
         <div className="grid md:grid-cols-[280px_1fr] gap-8">
           {/* Poster */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
             className="aspect-[2/3] rounded-2xl overflow-hidden shadow-red relative bg-background"
           >
             {movie.posterUrl ? (
-              <img src={movie.posterUrl} alt={movie.title} className="absolute inset-0 w-full h-full object-cover" />
+              <img
+                src={movie.posterUrl}
+                alt={movie.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
             ) : (
               <div className="absolute inset-0" style={{ background: movie.posterGradient }} />
             )}
@@ -173,13 +189,29 @@ function MovieDetailsPage() {
           </motion.div>
 
           {/* Info */}
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
             <div className="flex flex-wrap gap-2 mb-3">
               {movie.genres?.map((g) => (
-                <span key={g} className="px-2.5 py-0.5 rounded-full glass text-xs">{g}</span>
+                <span key={g} className="px-2.5 py-0.5 rounded-full glass text-xs">
+                  {g}
+                </span>
               ))}
             </div>
-            <h1 className="font-display text-5xl sm:text-7xl leading-none">{movie.title}</h1>
+            {movie.logoUrl ? (
+              <div className="relative mb-4 mt-2">
+                <img
+                  src={movie.logoUrl}
+                  alt={movie.title}
+                  className="h-20 sm:h-28 lg:h-36 w-auto object-contain drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] max-w-[90%] select-none pointer-events-none"
+                />
+              </div>
+            ) : (
+              <h1 className="font-display text-5xl sm:text-7xl leading-none mb-4">{movie.title}</h1>
+            )}
 
             {movie.tagline && (
               <p className="text-lg sm:text-xl italic text-primary/95 mt-3 font-light leading-relaxed">
@@ -189,16 +221,26 @@ function MovieDetailsPage() {
 
             <div className="mt-5 flex flex-wrap items-center gap-5 text-sm">
               <div className="flex items-center gap-1.5">
-                <div className="w-9 h-9 rounded-md bg-yellow-500 text-black font-bold grid place-items-center text-xs">IMDb</div>
+                <div className="w-9 h-9 rounded-md bg-yellow-500 text-black font-bold grid place-items-center text-xs">
+                  IMDb
+                </div>
                 <span className="font-bold text-lg">{movie.imdb}</span>
                 <span className="text-muted-foreground">/10</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-9 h-9 rounded-md gradient-red text-primary-foreground font-bold grid place-items-center text-[10px]">RT</div>
+                <div className="w-9 h-9 rounded-md gradient-red text-primary-foreground font-bold grid place-items-center text-[10px]">
+                  RT
+                </div>
                 <span className="font-bold text-lg">{movie.rt}%</span>
               </div>
-              <span className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="w-4 h-4" />{movie.year}</span>
-              <span className="flex items-center gap-1.5 text-muted-foreground"><Clock className="w-4 h-4" />{movie.duration}</span>
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                {movie.year}
+              </span>
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                {movie.duration}
+              </span>
             </div>
 
             <p className="mt-6 text-base sm:text-lg leading-relaxed text-white/85 max-w-3xl">
@@ -222,7 +264,9 @@ function MovieDetailsPage() {
                 onClick={handleWatchlistClick}
                 disabled={toggleWatchlistMutation.isPending}
                 className={`inline-flex items-center gap-2 rounded-md px-5 py-3 font-semibold transition-colors cursor-pointer ${
-                  isSaved ? "gradient-red text-primary-foreground shadow-red" : "glass-strong hover:bg-accent"
+                  isSaved
+                    ? "gradient-red text-primary-foreground shadow-red"
+                    : "glass-strong hover:bg-accent"
                 }`}
               >
                 <Plus className="w-5 h-5" /> {isSaved ? "In Watchlist" : "Add to Watchlist"}
@@ -238,7 +282,11 @@ function MovieDetailsPage() {
               <button
                 className="w-12 h-12 grid place-items-center rounded-md glass-strong hover:bg-accent cursor-pointer"
                 aria-label="Share"
-                onClick={() => navigator.share?.({ title: movie.title, url: window.location.href }).catch(() => {})}
+                onClick={() =>
+                  navigator
+                    .share?.({ title: movie.title, url: window.location.href })
+                    .catch(() => {})
+                }
               >
                 <Share2 className="w-5 h-5" />
               </button>
@@ -247,40 +295,56 @@ function MovieDetailsPage() {
             <div className="mt-8 grid sm:grid-cols-2 md:grid-cols-3 gap-6 border-t border-white/10 pt-6">
               {movie.director && movie.director !== "Unknown" && (
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Director</div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                    Director
+                  </div>
                   <p className="font-semibold text-sm">{movie.director}</p>
                 </div>
               )}
               {movie.releaseDate && (
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Release Date</div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                    Release Date
+                  </div>
                   <p className="font-semibold text-sm">{movie.releaseDate}</p>
                 </div>
               )}
               {movie.popularity && (
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Popularity Rank</div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                    Popularity Rank
+                  </div>
                   <p className="font-semibold text-sm">{Math.round(movie.popularity)}</p>
                 </div>
               )}
               {movie.spokenLanguages && movie.spokenLanguages.length > 0 && (
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Languages</div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                    Languages
+                  </div>
                   <p className="font-semibold text-sm">{movie.spokenLanguages.join(", ")}</p>
                 </div>
               )}
               {movie.productionCompanies && movie.productionCompanies.length > 0 && (
                 <div className="sm:col-span-2">
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Production</div>
-                  <p className="font-semibold text-sm text-white/80">{movie.productionCompanies.join(", ")}</p>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                    Production
+                  </div>
+                  <p className="font-semibold text-sm text-white/80">
+                    {movie.productionCompanies.join(", ")}
+                  </p>
                 </div>
               )}
               {movie.streaming && movie.streaming.length > 0 && (
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Streaming on</div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
+                    Streaming on
+                  </div>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {movie.streaming.map((s) => (
-                      <span key={s} className="px-2.5 py-0.5 rounded glass text-xs">{s}</span>
+                      <span key={s} className="px-2.5 py-0.5 rounded glass text-xs">
+                        {s}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -298,7 +362,11 @@ function MovieDetailsPage() {
                 <div key={idx} className="flex flex-col items-center text-center">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border border-border shadow bg-accent mb-2">
                     {actor.profileUrl ? (
-                      <img src={actor.profileUrl} alt={actor.name} className="w-full h-full object-cover" />
+                      <img
+                        src={actor.profileUrl}
+                        alt={actor.name}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center font-display text-xl bg-gradient-red text-white uppercase">
                         {actor.name.charAt(0)}
@@ -306,7 +374,9 @@ function MovieDetailsPage() {
                     )}
                   </div>
                   <span className="text-xs font-semibold line-clamp-1">{actor.name}</span>
-                  <span className="text-[10px] text-muted-foreground line-clamp-1">{actor.character}</span>
+                  <span className="text-[10px] text-muted-foreground line-clamp-1">
+                    {actor.character}
+                  </span>
                 </div>
               ))}
             </div>
@@ -316,7 +386,9 @@ function MovieDetailsPage() {
             <h2 className="font-display text-3xl mb-4">Cast & Crew</h2>
             <div className="flex flex-wrap gap-2">
               {movie.cast.map((c) => (
-                <span key={c} className="px-3 py-1.5 rounded-full glass text-sm">{c}</span>
+                <span key={c} className="px-3 py-1.5 rounded-full glass text-sm">
+                  {c}
+                </span>
               ))}
             </div>
           </section>
@@ -328,7 +400,7 @@ function MovieDetailsPage() {
             className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl grid place-items-center p-4 sm:p-10"
             onClick={() => setShowTrailer(false)}
           >
-            <div 
+            <div
               className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-red bg-black border border-white/10"
               onClick={(e) => e.stopPropagation()}
             >
@@ -339,7 +411,7 @@ function MovieDetailsPage() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
-              <button 
+              <button
                 onClick={() => setShowTrailer(false)}
                 className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/80 border border-white/20 text-white grid place-items-center hover:bg-black font-semibold text-lg cursor-pointer"
               >
@@ -354,7 +426,9 @@ function MovieDetailsPage() {
           <section className="mt-20 border-t border-white/10 pt-10">
             <h2 className="font-display text-3xl sm:text-4xl mb-5">Recommended for You</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {recommendations.map((m, i) => <MovieCard key={m.id} movie={m} index={i} />)}
+              {recommendations.map((m, i) => (
+                <MovieCard key={m.id} movie={m} index={i} />
+              ))}
             </div>
           </section>
         )}
@@ -364,7 +438,9 @@ function MovieDetailsPage() {
           <section className="mt-20 border-t border-white/10 pt-10">
             <h2 className="font-display text-3xl sm:text-4xl mb-5">You might also love</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {similar.map((m, i) => <MovieCard key={m.id} movie={m} index={i} />)}
+              {similar.map((m, i) => (
+                <MovieCard key={m.id} movie={m} index={i} />
+              ))}
             </div>
           </section>
         )}

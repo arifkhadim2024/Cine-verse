@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Film, Search, Sparkles, Bookmark, User, Menu, X } from "lucide-react";
+import { Film, Search, Sparkles, Bookmark, User, Menu, X, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 const links = [
   { to: "/", label: "Home" },
@@ -17,6 +18,40 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [tmdbKey, setTmdbKey] = useState("");
+  const [geminiKey, setGeminiKey] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setTmdbKey(localStorage.getItem("cineverse_tmdb_key") || "");
+      setGeminiKey(localStorage.getItem("cineverse_gemini_key") || "");
+    }
+  }, [showSettings]);
+
+  const saveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem("cineverse_tmdb_key", tmdbKey.trim());
+    localStorage.setItem("cineverse_gemini_key", geminiKey.trim());
+    setShowSettings(false);
+    toast.success("API keys updated successfully! Reloading page...");
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
+  const clearSettings = () => {
+    localStorage.removeItem("cineverse_tmdb_key");
+    localStorage.removeItem("cineverse_gemini_key");
+    setTmdbKey("");
+    setGeminiKey("");
+    setShowSettings(false);
+    toast.info("API keys cleared. Reloading page...");
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -64,11 +99,18 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link
             to="/search"
-            className="hidden sm:grid w-9 h-9 place-items-center rounded-full hover:bg-accent transition-colors"
+            className="hidden sm:grid w-9 h-9 place-items-center rounded-full hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
             aria-label="Search"
           >
             <Search className="w-4 h-4" />
           </Link>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-9 h-9 grid place-items-center rounded-full hover:bg-accent transition-colors cursor-pointer text-muted-foreground hover:text-foreground"
+            aria-label="Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
           {isAuthenticated && (
             <Link
               to="/profile"
@@ -132,9 +174,21 @@ export function Navbar() {
                   <User className="w-4 h-4" /> Profile
                 </Link>
               )}
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setShowSettings(true);
+                }}
+                className="px-3 py-2 rounded-md hover:bg-accent text-sm flex items-center gap-2 text-left w-full cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <Settings className="w-4 h-4" /> Developer Settings
+              </button>
               {isAuthenticated ? (
                 <button
-                  onClick={() => { logout(); setOpen(false); }}
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
                   className="mt-2 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold glass-strong w-full cursor-pointer"
                 >
                   Sign out
@@ -149,6 +203,103 @@ export function Navbar() {
                 </Link>
               )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-55 bg-black/85 backdrop-blur-md grid place-items-center p-4"
+            onClick={() => setShowSettings(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative w-full max-w-md glass-strong rounded-3xl p-6 sm:p-8 shadow-red border border-white/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowSettings(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full glass hover:bg-accent text-white grid place-items-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <h2 className="font-display text-3xl mb-1 text-white">Developer Settings</h2>
+              <p className="text-xs text-muted-foreground mb-6">
+                Configure your own API keys to access all movies in the world and use the Gemini AI recommender. Keys are stored safely in your browser.
+              </p>
+
+              <form onSubmit={saveSettings} className="space-y-5">
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                      TMDB API Key (v3)
+                    </label>
+                    <a
+                      href="https://www.themoviedb.org/settings/api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      Get TMDB Key ↗
+                    </a>
+                  </div>
+                  <input
+                    type="password"
+                    value={tmdbKey}
+                    onChange={(e) => setTmdbKey(e.target.value)}
+                    placeholder="Enter your TMDB API Key"
+                    className="w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors text-white text-sm"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                      Gemini API Key
+                    </label>
+                    <a
+                      href="https://aistudio.google.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      Get Gemini Key ↗
+                    </a>
+                  </div>
+                  <input
+                    type="password"
+                    value={geminiKey}
+                    onChange={(e) => setGeminiKey(e.target.value)}
+                    placeholder="Enter your Gemini API Key"
+                    className="w-full rounded-lg bg-input/60 border border-border px-4 py-2.5 outline-none focus:border-primary transition-colors text-white text-sm"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={clearSettings}
+                    className="flex-1 rounded-lg glass py-2.5 text-xs font-semibold text-white hover:bg-accent transition-colors cursor-pointer"
+                  >
+                    Clear Keys
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-[2] rounded-lg gradient-red py-2.5 text-xs font-semibold text-primary-foreground shadow-red hover:scale-[1.02] transition-transform cursor-pointer"
+                  >
+                    Save Config
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

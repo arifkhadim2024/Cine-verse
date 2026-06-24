@@ -6,14 +6,38 @@ import { genres, movies } from "@/data/movies";
 export const Route = createFileRoute("/genres")({ component: GenresPage });
 
 const genreMeta: Record<string, { gradient: string; tagline: string }> = {
-  Horror: { gradient: "linear-gradient(135deg, #1a0000, #5a0a0a, #000)", tagline: "Sleep with the lights on" },
-  Comedy: { gradient: "linear-gradient(135deg, #2a0a14, #c4244a, #ff6090)", tagline: "Laughter required" },
-  Action: { gradient: "linear-gradient(135deg, #1a0a00, #8a1a0a, #ff3a1a)", tagline: "Pure adrenaline" },
-  Thriller: { gradient: "linear-gradient(135deg, #0a001a, #3a0a4a, #8a1a4a)", tagline: "Edge of your seat" },
-  Romance: { gradient: "linear-gradient(135deg, #2a0a1a, #8a1a4a, #e44a8a)", tagline: "Heart-stoppers" },
-  "Sci-Fi": { gradient: "linear-gradient(135deg, #000, #1a0a4a, #4a1a8a)", tagline: "Beyond the stars" },
-  Anime: { gradient: "linear-gradient(135deg, #0a1a4a, #4a1a8a, #e44a4a)", tagline: "Hand-drawn worlds" },
-  Adventure: { gradient: "linear-gradient(135deg, #1a0a00, #a04a0a, #ff9a1a)", tagline: "Wander further" },
+  Horror: {
+    gradient: "linear-gradient(135deg, #1a0000, #5a0a0a, #000)",
+    tagline: "Sleep with the lights on",
+  },
+  Comedy: {
+    gradient: "linear-gradient(135deg, #2a0a14, #c4244a, #ff6090)",
+    tagline: "Laughter required",
+  },
+  Action: {
+    gradient: "linear-gradient(135deg, #1a0a00, #8a1a0a, #ff3a1a)",
+    tagline: "Pure adrenaline",
+  },
+  Thriller: {
+    gradient: "linear-gradient(135deg, #0a001a, #3a0a4a, #8a1a4a)",
+    tagline: "Edge of your seat",
+  },
+  Romance: {
+    gradient: "linear-gradient(135deg, #2a0a1a, #8a1a4a, #e44a8a)",
+    tagline: "Heart-stoppers",
+  },
+  "Sci-Fi": {
+    gradient: "linear-gradient(135deg, #000, #1a0a4a, #4a1a8a)",
+    tagline: "Beyond the stars",
+  },
+  Anime: {
+    gradient: "linear-gradient(135deg, #0a1a4a, #4a1a8a, #e44a4a)",
+    tagline: "Hand-drawn worlds",
+  },
+  Adventure: {
+    gradient: "linear-gradient(135deg, #1a0a00, #a04a0a, #ff9a1a)",
+    tagline: "Wander further",
+  },
 };
 
 function GenresPage() {
@@ -44,7 +68,9 @@ function GenresPage() {
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.18),transparent_60%)]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                    <span className="text-xs uppercase tracking-widest text-white/70">{count} films</span>
+                    <span className="text-xs uppercase tracking-widest text-white/70">
+                      {count} films
+                    </span>
                     <h2 className="font-display text-4xl sm:text-5xl mt-1 drop-shadow-lg">{g}</h2>
                     <p className="text-sm text-white/80 mt-1">{meta.tagline}</p>
                   </div>

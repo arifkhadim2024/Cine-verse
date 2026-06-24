@@ -86,6 +86,12 @@ function HomePage() {
 
   const hero = trendingMovies[heroIndex] || continueWatching[0];
 
+  const { data: heroDetails } = useQuery({
+    queryKey: ["movieDetails", hero?.id],
+    queryFn: () => api.movies.getDetails(hero.id),
+    enabled: !!hero?.id,
+  });
+
   useEffect(() => {
     if (trendingMovies.length === 0) return;
     const t = setInterval(() => setHeroIndex((i) => (i + 1) % trendingMovies.length), 6000);
@@ -132,18 +138,32 @@ function HomePage() {
                 <span className="text-xs font-bold tracking-[0.3em] uppercase text-primary">
                   ◆ Featured
                 </span>
-                <span className="text-xs text-muted-foreground">#{heroIndex + 1} Trending today</span>
+                <span className="text-xs text-muted-foreground">
+                  #{heroIndex + 1} Trending today
+                </span>
               </div>
-              <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none drop-shadow-2xl">
-                {hero.title}
-              </h1>
+              {heroDetails?.logoUrl ? (
+                <div className="relative mb-4">
+                  <img
+                    src={heroDetails.logoUrl}
+                    alt={hero.title}
+                    className="h-20 sm:h-28 lg:h-36 w-auto object-contain drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] max-w-[90%] select-none pointer-events-none"
+                  />
+                </div>
+              ) : (
+                <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none drop-shadow-2xl mb-4">
+                  {hero.title}
+                </h1>
+              )}
               <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
                 <span className="font-semibold text-primary">★ {hero.imdb} IMDb</span>
                 <span className="text-muted-foreground">{hero.year}</span>
                 <span className="text-muted-foreground">{hero.duration}</span>
                 <div className="flex gap-1.5">
                   {hero.genres.map((g) => (
-                    <span key={g} className="px-2 py-0.5 rounded-full glass text-xs">{g}</span>
+                    <span key={g} className="px-2 py-0.5 rounded-full glass text-xs">
+                      {g}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -187,7 +207,10 @@ function HomePage() {
       {/* SEARCH BAR */}
       <section className="relative -mt-12 sm:-mt-16 mx-auto max-w-3xl px-4 sm:px-6 z-10">
         <form
-          onSubmit={(e) => { e.preventDefault(); navigate({ to: "/search", search: { q: query } as never }); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigate({ to: "/search", search: { q: query } as never });
+          }}
           className="glass-strong rounded-2xl p-2 flex items-center gap-2 shadow-red"
         >
           <Search className="w-5 h-5 ml-3 text-muted-foreground" />
@@ -222,7 +245,9 @@ function HomePage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-16">
         <div className="flex items-end justify-between mb-5">
           <h2 className="font-display text-3xl sm:text-4xl">Browse by Genre</h2>
-          <Link to="/genres" className="text-sm text-primary hover:underline">View all →</Link>
+          <Link to="/genres" className="text-sm text-primary hover:underline">
+            View all →
+          </Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {genres.map((g, i) => (
@@ -278,28 +303,48 @@ function HomePage() {
       {loadingTrending ? (
         <RowSkeleton count={6} />
       ) : (
-        <MovieRow title="Trending Now" subtitle="What everyone's watching this week" movies={trendingMovies} />
+        <MovieRow
+          title="Trending Now"
+          subtitle="What everyone's watching this week"
+          movies={trendingMovies}
+        />
       )}
 
       {loadingTopRated ? (
         <RowSkeleton count={6} />
       ) : (
-        <MovieRow title="Top Rated" subtitle="Critically acclaimed masterpieces" movies={topRatedMovies} />
+        <MovieRow
+          title="Top Rated"
+          subtitle="Critically acclaimed masterpieces"
+          movies={topRatedMovies}
+        />
       )}
 
       {loadingUpcoming ? (
         <RowSkeleton count={6} />
       ) : (
-        <MovieRow title="Upcoming Releases" subtitle="Anticipated blockbusters coming soon" movies={upcomingMovies} />
+        <MovieRow
+          title="Upcoming Releases"
+          subtitle="Anticipated blockbusters coming soon"
+          movies={upcomingMovies}
+        />
       )}
 
-      <MovieRow title="Continue Watching" subtitle="Pick up where you left off" movies={continueWatching} />
+      <MovieRow
+        title="Continue Watching"
+        subtitle="Pick up where you left off"
+        movies={continueWatching}
+      />
 
       {loadingBollywood ? (
         <RowSkeleton count={6} />
       ) : (
         bollywoodMovies.length > 0 && (
-          <MovieRow title="Bollywood Hits" subtitle="Epic Hindi drama and musical blockbusters" movies={bollywoodMovies} />
+          <MovieRow
+            title="Bollywood Hits"
+            subtitle="Epic Hindi drama and musical blockbusters"
+            movies={bollywoodMovies}
+          />
         )
       )}
 
@@ -307,7 +352,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         koreanMovies.length > 0 && (
-          <MovieRow title="Korean Cinema" subtitle="K-Drama, action thrillers, and award winners" movies={koreanMovies} />
+          <MovieRow
+            title="Korean Cinema"
+            subtitle="K-Drama, action thrillers, and award winners"
+            movies={koreanMovies}
+          />
         )
       )}
 
@@ -315,7 +364,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         animeMovies.length > 0 && (
-          <MovieRow title="Anime Movies" subtitle="Stunning hand-drawn Japanese animation classics" movies={animeMovies} />
+          <MovieRow
+            title="Anime Movies"
+            subtitle="Stunning hand-drawn Japanese animation classics"
+            movies={animeMovies}
+          />
         )
       )}
 
@@ -323,7 +376,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         actionMovies.length > 0 && (
-          <MovieRow title="Action Blockbusters" subtitle="High-octane explosions and thrilling stunts" movies={actionMovies} />
+          <MovieRow
+            title="Action Blockbusters"
+            subtitle="High-octane explosions and thrilling stunts"
+            movies={actionMovies}
+          />
         )
       )}
 
@@ -331,7 +388,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         comedyMovies.length > 0 && (
-          <MovieRow title="Laughter & Comedy" subtitle="Lighthearted laughs and hilarious scenarios" movies={comedyMovies} />
+          <MovieRow
+            title="Laughter & Comedy"
+            subtitle="Lighthearted laughs and hilarious scenarios"
+            movies={comedyMovies}
+          />
         )
       )}
 
@@ -339,7 +400,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         horrorMovies.length > 0 && (
-          <MovieRow title="Midnight Horrors" subtitle="Creepy tales, jump scares, and supernatural fears" movies={horrorMovies} />
+          <MovieRow
+            title="Midnight Horrors"
+            subtitle="Creepy tales, jump scares, and supernatural fears"
+            movies={horrorMovies}
+          />
         )
       )}
 
@@ -347,7 +412,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         romanceMovies.length > 0 && (
-          <MovieRow title="Romantic Stories" subtitle="Heartfelt romance, passionate love stories, and dramas" movies={romanceMovies} />
+          <MovieRow
+            title="Romantic Stories"
+            subtitle="Heartfelt romance, passionate love stories, and dramas"
+            movies={romanceMovies}
+          />
         )
       )}
 
@@ -355,7 +424,11 @@ function HomePage() {
         <RowSkeleton count={6} />
       ) : (
         sciFiMovies.length > 0 && (
-          <MovieRow title="Sci-Fi & Fantasy" subtitle="Futuristic adventures, alien worlds, and tech dystopias" movies={sciFiMovies} />
+          <MovieRow
+            title="Sci-Fi & Fantasy"
+            subtitle="Futuristic adventures, alien worlds, and tech dystopias"
+            movies={sciFiMovies}
+          />
         )
       )}
     </Layout>

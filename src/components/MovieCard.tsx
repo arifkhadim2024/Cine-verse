@@ -22,10 +22,7 @@ export function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }
               loading="lazy"
             />
           ) : (
-            <div
-              className="absolute inset-0"
-              style={{ background: movie.posterGradient }}
-            />
+            <div className="absolute inset-0" style={{ background: movie.posterGradient }} />
           )}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_50%)]" />
           <div className="absolute inset-0 flex flex-col justify-between p-3">
@@ -39,10 +36,10 @@ export function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }
               </span>
             </div>
             <div>
-              <h3 className="font-display text-xl leading-tight drop-shadow-lg">
-                {movie.title}
-              </h3>
-              <p className="text-xs text-white/70 mt-0.5">{movie.year} · {movie.duration}</p>
+              <h3 className="font-display text-xl leading-tight drop-shadow-lg">{movie.title}</h3>
+              <p className="text-xs text-white/70 mt-0.5">
+                {movie.year} · {movie.duration}
+              </p>
             </div>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

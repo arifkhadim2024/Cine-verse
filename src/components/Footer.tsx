@@ -15,8 +15,8 @@ export function Footer() {
             </span>
           </div>
           <p className="mt-4 text-sm text-muted-foreground max-w-sm">
-            An AI-powered cinematic universe. Discover, track, and obsess over films
-            that match your mood — not just your watch history.
+            An AI-powered cinematic universe. Discover, track, and obsess over films that match your
+            mood — not just your watch history.
           </p>
           <div className="mt-5 flex gap-2">
             {[Twitter, Instagram, Youtube, Github].map((Icon, i) => (
@@ -35,21 +35,57 @@ export function Footer() {
         <div>
           <h4 className="font-display text-lg mb-3">Explore</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/" className="hover:text-foreground">Home</Link></li>
-            <li><Link to="/search" className="hover:text-foreground">Movies</Link></li>
-            <li><Link to="/genres" className="hover:text-foreground">Genres</Link></li>
-            <li><Link to="/ai" className="hover:text-foreground">AI Assistant</Link></li>
-            <li><Link to="/watchlist" className="hover:text-foreground">Watchlist</Link></li>
+            <li>
+              <Link to="/" className="hover:text-foreground">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link to="/search" className="hover:text-foreground">
+                Movies
+              </Link>
+            </li>
+            <li>
+              <Link to="/genres" className="hover:text-foreground">
+                Genres
+              </Link>
+            </li>
+            <li>
+              <Link to="/ai" className="hover:text-foreground">
+                AI Assistant
+              </Link>
+            </li>
+            <li>
+              <Link to="/watchlist" className="hover:text-foreground">
+                Watchlist
+              </Link>
+            </li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-display text-lg mb-3">Company</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="#" className="hover:text-foreground">About</a></li>
-            <li><a href="#" className="hover:text-foreground">Contact</a></li>
-            <li><a href="#" className="hover:text-foreground">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-foreground">Privacy Policy</a></li>
+            <li>
+              <a href="#" className="hover:text-foreground">
+                About
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-foreground">
+                Contact
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-foreground">
+                Terms of Service
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-foreground">
+                Privacy Policy
+              </a>
+            </li>
           </ul>
         </div>
       </div>

@@ -72,7 +72,12 @@
   --input: oklch(0.25 0.02 20);
   --ring: oklch(0.58 0.24 25);
 
-  --gradient-hero: linear-gradient(180deg, transparent 0%, oklch(0.13 0.02 20 / 0.6) 50%, oklch(0.13 0.02 20) 100%);
+  --gradient-hero: linear-gradient(
+    180deg,
+    transparent 0%,
+    oklch(0.13 0.02 20 / 0.6) 50%,
+    oklch(0.13 0.02 20) 100%
+  );
   --gradient-red: linear-gradient(135deg, oklch(0.58 0.24 25), oklch(0.45 0.2 22));
   --gradient-glow: radial-gradient(circle at 50% 0%, oklch(0.58 0.24 25 / 0.35), transparent 60%);
   --shadow-red: 0 20px 60px -20px oklch(0.58 0.24 25 / 0.5);
@@ -87,21 +92,38 @@
   * {
     border-color: var(--color-border);
   }
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: 0.02em;
   }
-  ::selection { background: var(--primary); color: var(--primary-foreground); }
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--background); }
-  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
 }
 
 @layer utilities {
@@ -117,19 +139,34 @@
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     border: 1px solid color-mix(in oklab, white 10%, transparent);
   }
-  .gradient-red { background: var(--gradient-red); }
-  .gradient-hero { background: var(--gradient-hero); }
-  .gradient-glow { background: var(--gradient-glow); }
-  .shadow-red { box-shadow: var(--shadow-red); }
-  .shadow-card { box-shadow: var(--shadow-card); }
+  .gradient-red {
+    background: var(--gradient-red);
+  }
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .gradient-glow {
+    background: var(--gradient-glow);
+  }
+  .shadow-red {
+    box-shadow: var(--shadow-red);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
   .text-gradient-red {
     background: linear-gradient(135deg, oklch(0.78 0.24 25), oklch(0.55 0.24 22));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   .mask-fade-r {
     mask-image: linear-gradient(to right, black 85%, transparent);
   }

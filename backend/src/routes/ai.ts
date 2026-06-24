@@ -4,17 +4,35 @@ import axios from "axios";
 import { mockMovies, Movie } from "../data/mockMovies.js";
 
 const router = Router();
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const TMDB_API_KEY = process.env.TMDB_API_KEY || "";
+const getGeminiKey = (req: Request): string => {
+  return (req.headers["x-gemini-key"] as string) || process.env.GEMINI_API_KEY || "";
+};
+const getTmdbKey = (req: Request): string => {
+  return (req.headers["x-tmdb-key"] as string) || process.env.TMDB_API_KEY || "";
+};
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 // Map TMDB genre IDs to our category names
 const GENRE_MAP: Record<number, string> = {
-  28: "Action", 12: "Adventure", 16: "Anime", 35: "Comedy",
-  80: "Thriller", 99: "Drama", 18: "Drama", 10751: "Adventure",
-  14: "Sci-Fi", 36: "Drama", 27: "Horror", 10402: "Romance",
-  9648: "Thriller", 10749: "Romance", 878: "Sci-Fi",
-  10770: "Thriller", 53: "Thriller", 10752: "Action", 37: "Adventure"
+  28: "Action",
+  12: "Adventure",
+  16: "Anime",
+  35: "Comedy",
+  80: "Thriller",
+  99: "Drama",
+  18: "Drama",
+  10751: "Adventure",
+  14: "Sci-Fi",
+  36: "Drama",
+  27: "Horror",
+  10402: "Romance",
+  9648: "Thriller",
+  10749: "Romance",
+  878: "Sci-Fi",
+  10770: "Thriller",
+  53: "Thriller",
+  10752: "Action",
+  37: "Adventure",
 };
 
 function generateGradients(title: string) {
@@ -30,11 +48,26 @@ function generateGradients(title: string) {
   };
 }
 
-function mapTmdbMovie(m: any): Movie {
+interface TmdbMovie {
+  id: number;
+  title: string;
+  release_date?: string;
+  genre_ids?: number[];
+  vote_average?: number;
+  overview?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+}
+
+function mapTmdbMovie(m: TmdbMovie): Movie {
   const gradients = generateGradients(m.title);
   const releaseYear = m.release_date ? new Date(m.release_date).getFullYear() : 2024;
-  const genres = m.genre_ids ? m.genre_ids.map((id: number) => GENRE_MAP[id] || "Drama").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) : ["Drama"];
-  
+  const genres = m.genre_ids
+    ? m.genre_ids
+        .map((id: number) => GENRE_MAP[id] || "Drama")
+        .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
+    : ["Drama"];
+
   return {
     id: String(m.id),
     title: m.title,
@@ -56,17 +89,17 @@ function mapTmdbMovie(m: any): Movie {
 }
 
 // Search TMDB for a specific title and return mapped movie if found
-async function searchTmdbMovieByTitle(title: string): Promise<Movie | null> {
+async function searchTmdbMovieByTitle(title: string, apiKey: string): Promise<Movie | null> {
   try {
-    if (!TMDB_API_KEY) {
+    if (!apiKey) {
       // search in mock movies
       const match = mockMovies.find((m) => m.title.toLowerCase().includes(title.toLowerCase()));
       return match || null;
     }
     const res = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
-      params: { api_key: TMDB_API_KEY, query: title },
+      params: { api_key: apiKey, query: title },
     });
-    
+
     if (res.data.results && res.data.results.length > 0) {
       return mapTmdbMovie(res.data.results[0]);
     }
@@ -84,16 +117,32 @@ function localAIRecommender(input: string): { text: string; recs: Movie[] } {
   let intent = "Here are some hand-picked recommendations for you:";
 
   if (q.includes("horror") || q.includes("scary") || q.includes("conjuring")) {
-    recs = mockMovies.filter((m) => m.genres.includes("Horror") || m.mood.includes("dark")).slice(0, 4);
+    recs = mockMovies
+      .filter((m) => m.genres.includes("Horror") || m.mood.includes("dark"))
+      .slice(0, 4);
     intent = "If you loved The Conjuring, these atmospheric chillers will keep you up:";
   } else if (q.includes("comedy") || q.includes("funny") || q.includes("family")) {
-    recs = mockMovies.filter((m) => m.genres.includes("Comedy") || m.mood.includes("funny") || m.mood.includes("feel-good")).slice(0, 4);
+    recs = mockMovies
+      .filter(
+        (m) =>
+          m.genres.includes("Comedy") || m.mood.includes("funny") || m.mood.includes("feel-good"),
+      )
+      .slice(0, 4);
     intent = "Perfect for a light evening — laughs guaranteed:";
-  } else if (q.includes("mind") || q.includes("bend") || q.includes("inception") || q.includes("cerebral")) {
-    recs = mockMovies.filter((m) => m.mood.includes("mind bending") || m.mood.includes("cerebral")).slice(0, 4);
+  } else if (
+    q.includes("mind") ||
+    q.includes("bend") ||
+    q.includes("inception") ||
+    q.includes("cerebral")
+  ) {
+    recs = mockMovies
+      .filter((m) => m.mood.includes("mind bending") || m.mood.includes("cerebral"))
+      .slice(0, 4);
     intent = "Brain-melting puzzles that reward re-watching:";
   } else if (q.includes("sad") || q.includes("cry") || q.includes("emotional")) {
-    recs = mockMovies.filter((m) => m.mood.includes("sad") || m.mood.includes("melancholic")).slice(0, 4);
+    recs = mockMovies
+      .filter((m) => m.mood.includes("sad") || m.mood.includes("melancholic"))
+      .slice(0, 4);
     intent = "Bring tissues — these will move you:";
   } else if (q.includes("action") || q.includes("intense")) {
     recs = mockMovies.filter((m) => m.genres.includes("Action")).slice(0, 4);
@@ -112,13 +161,16 @@ function localAIRecommender(input: string): { text: string; recs: Movie[] } {
 }
 
 // @route   POST api/ai/recommend
-router.post("/recommend", async (req: Request, res: Response): Promise<any> => {
+router.post("/recommend", async (req: Request, res: Response): Promise<Response | void> => {
   const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ message: "Prompt is required" });
   }
 
-  if (!GEMINI_API_KEY) {
+  const geminiKey = getGeminiKey(req);
+  const tmdbKey = getTmdbKey(req);
+
+  if (!geminiKey) {
     console.log("Gemini API Key missing. Using local rule-based AI.");
     const fallback = localAIRecommender(prompt);
     return res.json({
@@ -128,10 +180,10 @@ router.post("/recommend", async (req: Request, res: Response): Promise<any> => {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const genAI = new GoogleGenerativeAI(geminiKey);
     // Use gemini-1.5-flash for speed and reliability
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
+
     const systemPrompt = `You are CineVerse AI, an expert movie recommender. Analyze the user's prompt: "${prompt}".
 Based on their input, suggest up to 4 movies.
 You MUST output your response in JSON format matching the schema below:
@@ -150,15 +202,15 @@ Do not write anything other than the raw JSON response.`;
 
     const responseText = result.response.text();
     const parsedData = JSON.parse(responseText);
-    
+
     const message = parsedData.message || "Here are some recommendations based on your request:";
     const titles = parsedData.titles || [];
-    
+
     // Convert titles to TMDB movie entities
-    const recsPromises = titles.map((title: string) => searchTmdbMovieByTitle(title));
+    const recsPromises = titles.map((title: string) => searchTmdbMovieByTitle(title, tmdbKey));
     const recsResults = await Promise.all(recsPromises);
     const filteredRecs = recsResults.filter((m): m is Movie => m !== null);
-    
+
     return res.json({
       message,
       recommendations: filteredRecs,
@@ -168,7 +220,9 @@ Do not write anything other than the raw JSON response.`;
     // Graceful fallback
     const fallback = localAIRecommender(prompt);
     return res.json({
-      message: "Our AI brain is currently rebooting, but here are some curated picks for you: " + fallback.text,
+      message:
+        "Our AI brain is currently rebooting, but here are some curated picks for you: " +
+        fallback.text,
       recommendations: fallback.recs,
     });
   }

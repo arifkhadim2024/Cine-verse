@@ -27,7 +27,12 @@ function GenrePage() {
     setPage(1);
   }, [genreId]);
 
-  const { data: resultsData, isLoading, isFetching, error } = useQuery({
+  const {
+    data: resultsData,
+    isLoading,
+    isFetching,
+    error,
+  } = useQuery({
     queryKey: ["genreMovies", genreId, page],
     queryFn: () => api.movies.getByGenre(genreId, page),
   });
@@ -104,4 +109,3 @@ function GenrePage() {
     </Layout>
   );
 }
-

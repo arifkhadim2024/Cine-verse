@@ -4,9 +4,7 @@
     {
       "source": "/api/:path*",
       "destination": "https://cineverse-backend.onrender.com/api/:path*"
-    }
-  ],
-  "headers": [
+    },
     {
       "source": "/(.*)",
       "headers": [

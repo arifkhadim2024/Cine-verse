@@ -6,8 +6,14 @@ import moviesRouter from "./routes/movies.js";
 import watchlistRouter from "./routes/watchlist.js";
 import aiRouter from "./routes/ai.js";
 
-// Load environment variables
-dotenv.config();
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables relative to backend root
+dotenv.config({ path: path.resolve(__dirname, "../.env"), override: true });
 
 const app = express();
 const PORT = process.env.PORT || 5000;

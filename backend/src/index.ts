@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { connectDB } from "./config/db.js";
 import authRouter from "./routes/auth.js";
 import moviesRouter from "./routes/movies.js";
 import watchlistRouter from "./routes/watchlist.js";
@@ -36,21 +35,11 @@ app.get("/health", (req, res) => {
   res.json({ status: "healthy", timestamp: new Date() });
 });
 
-// Start DB connection and listen
-async function startServer() {
-  // Check if mongo URI is default localhost and warn, but don't fail
-  const mongoUri = process.env.MONGO_URI || "";
-  if (!mongoUri || mongoUri.includes("localhost")) {
-    console.warn(
-      "WARNING: Running with local/empty MongoDB. Watchlist/Favorites features will require a running MongoDB instance.",
-    );
-  }
-
-  await connectDB();
-
+// Run server only in local development / outside Vercel serverless environment
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
 
-startServer();
+export default app;

@@ -1,5 +1,5 @@
 import { Router, Response } from "express";
-import { User } from "../models/User.js";
+import { supabase } from "../config/supabase.js";
 import { authMiddleware, AuthRequest } from "../middleware/auth.js";
 
 const router = Router();
@@ -15,9 +15,17 @@ router.get(
   authMiddleware,
   async (req: AuthRequest, res: Response): Promise<Response | void> => {
     try {
-      const user = await User.findById(req.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
-      return res.json(user.watchlist);
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("watchlist")
+        .eq("id", req.userId)
+        .maybeSingle();
+
+      if (error || !user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.json(user.watchlist || []);
     } catch (error) {
       console.error("Fetch watchlist error:", error);
       return res.status(500).json({ message: "Server error" });
@@ -37,18 +45,37 @@ router.post(
     }
 
     try {
-      const user = await User.findById(req.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
+      const { data: user, error: fetchError } = await supabase
+        .from("users")
+        .select("watchlist")
+        .eq("id", req.userId)
+        .maybeSingle();
+
+      if (fetchError || !user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const watchlist = user.watchlist || [];
 
       // Check if movie already exists in watchlist
-      const exists = user.watchlist.some((item) => item.id === String(movie.id));
+      const exists = watchlist.some((item: any) => String(item.id) === String(movie.id));
       if (exists) {
         return res.status(400).json({ message: "Movie already in watchlist" });
       }
 
-      user.watchlist.push(movie);
-      await user.save();
-      return res.status(201).json(user.watchlist);
+      watchlist.push(movie);
+
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ watchlist })
+        .eq("id", req.userId);
+
+      if (updateError) {
+        console.error("Supabase watchlist update error:", updateError);
+        return res.status(500).json({ message: "Database update error" });
+      }
+
+      return res.status(201).json(watchlist);
     } catch (error) {
       console.error("Add watchlist error:", error);
       return res.status(500).json({ message: "Server error" });
@@ -65,14 +92,30 @@ router.delete(
     const { id } = req.params;
 
     try {
-      const user = await User.findById(req.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
+      const { data: user, error: fetchError } = await supabase
+        .from("users")
+        .select("watchlist")
+        .eq("id", req.userId)
+        .maybeSingle();
 
-      user.watchlist = user.watchlist.filter(
-        (item) => item.id !== id,
-      ) as unknown as typeof user.watchlist;
-      await user.save();
-      return res.json(user.watchlist);
+      if (fetchError || !user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let watchlist = user.watchlist || [];
+      watchlist = watchlist.filter((item: any) => String(item.id) !== id);
+
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ watchlist })
+        .eq("id", req.userId);
+
+      if (updateError) {
+        console.error("Supabase watchlist delete update error:", updateError);
+        return res.status(500).json({ message: "Database update error" });
+      }
+
+      return res.json(watchlist);
     } catch (error) {
       console.error("Remove watchlist error:", error);
       return res.status(500).json({ message: "Server error" });
@@ -91,9 +134,17 @@ router.get(
   authMiddleware,
   async (req: AuthRequest, res: Response): Promise<Response | void> => {
     try {
-      const user = await User.findById(req.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
-      return res.json(user.favorites);
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("favorites")
+        .eq("id", req.userId)
+        .maybeSingle();
+
+      if (error || !user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.json(user.favorites || []);
     } catch (error) {
       console.error("Fetch favorites error:", error);
       return res.status(500).json({ message: "Server error" });
@@ -113,18 +164,37 @@ router.post(
     }
 
     try {
-      const user = await User.findById(req.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
+      const { data: user, error: fetchError } = await supabase
+        .from("users")
+        .select("favorites")
+        .eq("id", req.userId)
+        .maybeSingle();
+
+      if (fetchError || !user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const favorites = user.favorites || [];
 
       // Check if movie already exists in favorites
-      const exists = user.favorites.some((item) => item.id === String(movie.id));
+      const exists = favorites.some((item: any) => String(item.id) === String(movie.id));
       if (exists) {
         return res.status(400).json({ message: "Movie already in favorites" });
       }
 
-      user.favorites.push(movie);
-      await user.save();
-      return res.status(201).json(user.favorites);
+      favorites.push(movie);
+
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ favorites })
+        .eq("id", req.userId);
+
+      if (updateError) {
+        console.error("Supabase favorites update error:", updateError);
+        return res.status(500).json({ message: "Database update error" });
+      }
+
+      return res.status(201).json(favorites);
     } catch (error) {
       console.error("Add favorite error:", error);
       return res.status(500).json({ message: "Server error" });
@@ -141,14 +211,30 @@ router.delete(
     const { id } = req.params;
 
     try {
-      const user = await User.findById(req.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
+      const { data: user, error: fetchError } = await supabase
+        .from("users")
+        .select("favorites")
+        .eq("id", req.userId)
+        .maybeSingle();
 
-      user.favorites = user.favorites.filter(
-        (item) => item.id !== id,
-      ) as unknown as typeof user.favorites;
-      await user.save();
-      return res.json(user.favorites);
+      if (fetchError || !user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let favorites = user.favorites || [];
+      favorites = favorites.filter((item: any) => String(item.id) !== id);
+
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ favorites })
+        .eq("id", req.userId);
+
+      if (updateError) {
+        console.error("Supabase favorites delete update error:", updateError);
+        return res.status(500).json({ message: "Database update error" });
+      }
+
+      return res.json(favorites);
     } catch (error) {
       console.error("Remove favorite error:", error);
       return res.status(500).json({ message: "Server error" });

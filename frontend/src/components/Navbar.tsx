@@ -233,7 +233,8 @@ export function Navbar() {
 
               <h2 className="font-display text-3xl mb-1 text-white">Developer Settings</h2>
               <p className="text-xs text-muted-foreground mb-6">
-                Configure your own API keys to access all movies in the world and use the Gemini AI recommender. Keys are stored safely in your browser.
+                Configure your own API keys to access all movies in the world and use the Gemini AI
+                recommender. Keys are stored safely in your browser.
               </p>
 
               <form onSubmit={saveSettings} className="space-y-5">

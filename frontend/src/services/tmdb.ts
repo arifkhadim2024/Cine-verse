@@ -211,9 +211,12 @@ export async function getMovieDetails(id: string): Promise<RichMovie> {
 
     let logoUrl: string | undefined;
     try {
-      const images = await fetchFromTmdb<{ logos?: { file_path: string }[] }>(`/movie/${id}/images`, {
-        include_image_language: "en,null",
-      });
+      const images = await fetchFromTmdb<{ logos?: { file_path: string }[] }>(
+        `/movie/${id}/images`,
+        {
+          include_image_language: "en,null",
+        },
+      );
       const logoObj = images.logos?.find((l) => l.file_path);
       if (logoObj) {
         logoUrl = `https://image.tmdb.org/t/p/w500${logoObj.file_path}`;

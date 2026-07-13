@@ -3,8 +3,8 @@ import { tmdb, type RichMovie } from "@/services/tmdb";
 
 export const API_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || "http://localhost:5000/api"
-    : process.env.VITE_API_URL || "http://localhost:5000/api";
+    ? import.meta.env.VITE_API_URL || "http://localhost:5001/api"
+    : process.env.VITE_API_URL || "http://localhost:5001/api";
 
 const isClient = typeof window !== "undefined";
 

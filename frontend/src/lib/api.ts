@@ -1,10 +1,7 @@
 import type { Movie } from "@/data/movies";
 import { tmdb, type RichMovie } from "@/services/tmdb";
 
-export const API_BASE_URL =
-  typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || "http://localhost:5001/api"
-    : process.env.VITE_API_URL || "http://localhost:5001/api";
+export const API_BASE_URL = "/api";
 
 const isClient = typeof window !== "undefined";
 

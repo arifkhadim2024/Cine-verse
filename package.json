@@ -11,7 +11,7 @@
     "dev:backend": "npm run dev -w backend",
     "build:frontend": "npm run build -w frontend",
     "build:backend": "npm run build -w backend",
-    "build": "npm run build -w frontend && npm run build -w backend"
+    "build": "npm run build -w frontend && npm run build -w backend && (if [ -d frontend/.vercel/output ]; then rm -rf .vercel/output && mv frontend/.vercel/output .vercel/output; fi)"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

@@ -335,7 +335,37 @@ function MovieDetailsPage() {
                   </p>
                 </div>
               )}
-              {movie.streaming && movie.streaming.length > 0 && (
+              {movie.watchProviders && movie.watchProviders.providers && movie.watchProviders.providers.length > 0 ? (
+                <div className="col-span-full mt-2 p-4 rounded-xl glass-strong border border-white/5 shadow-inner">
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3 font-semibold">
+                    Where to Watch (Click to Stream)
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {movie.watchProviders.providers.map((p: any) => (
+                      <a
+                        key={p.id}
+                        href={movie.watchProviders.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg glass hover:bg-primary/20 border border-white/5 hover:border-primary/45 transition-all hover:scale-[1.03] active:scale-95 group shadow-sm"
+                        title={`Stream ${movie.title} on ${p.name}`}
+                      >
+                        {p.logo ? (
+                          <img
+                            src={p.logo}
+                            alt={p.name}
+                            className="w-5 h-5 rounded object-cover border border-white/10"
+                            loading="lazy"
+                          />
+                        ) : null}
+                        <span className="font-semibold text-xs text-white/90 group-hover:text-primary transition-colors">
+                          {p.name}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : movie.streaming && movie.streaming.length > 0 ? (
                 <div>
                   <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
                     Streaming on
@@ -348,7 +378,7 @@ function MovieDetailsPage() {
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           </motion.div>
         </div>

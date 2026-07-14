@@ -62893,6 +62893,37 @@ router2.get("/:id", async (req, res) => {
       console.warn("Failed to fetch movie logo from TMDB:", e);
     }
     mapped.logoUrl = logoUrl;
+    let watchProviders = null;
+    try {
+      const providersRes = await axios_default.get(
+        `${TMDB_BASE_URL}/movie/${id}/watch/providers`,
+        {
+          params: { api_key: apiKey }
+        }
+      );
+      const results = providersRes.data.results || {};
+      const countryData = results.IN || results.US || Object.values(results)[0];
+      if (countryData) {
+        const flatrate = countryData.flatrate || [];
+        const rent = countryData.rent || [];
+        const buy = countryData.buy || [];
+        const combined = [...flatrate, ...rent, ...buy];
+        const uniqueProviders = combined.filter(
+          (v, i, a) => a.findIndex((t) => t.provider_id === v.provider_id) === i
+        );
+        watchProviders = {
+          link: countryData.link || `https://www.themoviedb.org/movie/${id}/watch`,
+          providers: uniqueProviders.map((p) => ({
+            name: p.provider_name,
+            logo: `https://image.tmdb.org/t/p/original${p.logo_path}`,
+            id: p.provider_id
+          }))
+        };
+      }
+    } catch (e) {
+      console.warn("Failed to fetch watch providers from TMDB:", e);
+    }
+    mapped.watchProviders = watchProviders;
     if (response.data.genres) {
       mapped.genres = response.data.genres.map((g2) => g2.name);
     }

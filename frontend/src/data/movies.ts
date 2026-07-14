@@ -17,6 +17,7 @@ export type Movie = {
   posterUrl?: string;
   backdropUrl?: string;
   logoUrl?: string;
+  watchProviders?: any;
 };
 
 const g = (a: string, b: string, c: string) =>

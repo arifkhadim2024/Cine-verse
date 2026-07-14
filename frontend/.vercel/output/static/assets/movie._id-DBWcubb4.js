@@ -1,1 +1,0 @@
-import{j as t,L as o}from"./index-bKU0eDJX.js";import{L as n}from"./Layout-CrCHXEVY.js";const i=()=>t.jsx(n,{children:t.jsxs("div",{className:"pt-32 text-center",children:[t.jsx("h1",{className:"font-display text-4xl",children:"Movie not found"}),t.jsx(o,{to:"/",className:"text-primary mt-4 inline-block",children:"Back home"})]})});export{i as notFoundComponent};

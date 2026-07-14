@@ -430,6 +430,40 @@ router.get("/:id", async (req: Request, res: Response): Promise<Response | void>
     }
     mapped.logoUrl = logoUrl;
 
+    // Fetch watch providers
+    let watchProviders: any = null;
+    try {
+      const providersRes = await axios.get<{ results: Record<string, any> }>(
+        `${TMDB_BASE_URL}/movie/${id}/watch/providers`,
+        {
+          params: { api_key: apiKey },
+        },
+      );
+      const results = providersRes.data.results || {};
+      // Prioritize India, then US, then fallback to first available country result
+      const countryData = results.IN || results.US || Object.values(results)[0];
+      if (countryData) {
+        const flatrate = countryData.flatrate || [];
+        const rent = countryData.rent || [];
+        const buy = countryData.buy || [];
+        const combined = [...flatrate, ...rent, ...buy];
+        const uniqueProviders = combined.filter(
+          (v: any, i: number, a: any[]) => a.findIndex((t) => t.provider_id === v.provider_id) === i,
+        );
+        watchProviders = {
+          link: countryData.link || `https://www.themoviedb.org/movie/${id}/watch`,
+          providers: uniqueProviders.map((p: any) => ({
+            name: p.provider_name,
+            logo: `https://image.tmdb.org/t/p/original${p.logo_path}`,
+            id: p.provider_id,
+          })),
+        };
+      }
+    } catch (e) {
+      console.warn("Failed to fetch watch providers from TMDB:", e);
+    }
+    mapped.watchProviders = watchProviders;
+
     // Add additional properties from full details response
     if (response.data.genres) {
       mapped.genres = response.data.genres.map((g: { id: number; name: string }) => g.name);

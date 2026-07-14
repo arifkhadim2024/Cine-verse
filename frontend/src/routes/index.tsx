@@ -24,6 +24,17 @@ const genreColors: Record<string, string> = {
   Adventure: "from-amber-800 to-red-900",
 };
 
+const genreImages: Record<string, string> = {
+  Horror: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=600&auto=format&fit=crop",
+  Comedy: "https://images.unsplash.com/photo-1514306191717-452ec28c7814?q=80&w=600&auto=format&fit=crop",
+  Action: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=600&auto=format&fit=crop",
+  Thriller: "https://images.unsplash.com/photo-1505635339363-3193273f8a49?q=80&w=600&auto=format&fit=crop",
+  Romance: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600&auto=format&fit=crop",
+  "Sci-Fi": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop",
+  Anime: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop",
+  Adventure: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600&auto=format&fit=crop",
+};
+
 function HomePage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [query, setQuery] = useState("");
@@ -261,13 +272,24 @@ function HomePage() {
               <Link
                 to="/search"
                 search={{ q: g } as never}
-                className={`group relative block aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br ${genreColors[g]} shadow-card hover:shadow-red transition-all hover:scale-[1.03]`}
+                className="group relative block aspect-[16/10] rounded-xl overflow-hidden shadow-card hover:shadow-red transition-all hover:scale-[1.03]"
               >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
+                {genreImages[g] ? (
+                  <img
+                    src={genreImages[g]}
+                    alt={g}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${genreColors[g]}`} />
+                )}
+                {/* Gradient overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10 group-hover:from-black/90 transition-colors duration-300" />
                 <div className="absolute inset-0 flex items-end p-4">
-                  <span className="font-display text-2xl sm:text-3xl drop-shadow-lg">{g}</span>
+                  <span className="font-display text-2xl sm:text-3xl drop-shadow-lg text-white">{g}</span>
                 </div>
-                <div className="absolute top-3 right-3 w-8 h-8 grid place-items-center rounded-full glass opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-3 right-3 w-8 h-8 grid place-items-center rounded-full glass opacity-0 group-hover:opacity-100 transition-opacity text-white">
                   →
                 </div>
               </Link>

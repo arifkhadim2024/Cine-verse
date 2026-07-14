@@ -13,16 +13,16 @@ async function main() {
   // 1. Create directory if not exists
   fs.mkdirSync(outDir, { recursive: true });
 
-  // 2. Run esbuild to bundle api/index.ts into outDir/index.js
+  // 2. Run esbuild to bundle api/index.ts into outDir/index.mjs
   console.log("📦 Bundling Express backend with esbuild...");
   execSync(
-    "npx esbuild api/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=.vercel/output/functions/api.func/index.js",
+    "npx esbuild api/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=.vercel/output/functions/api.func/index.mjs",
     { stdio: "inherit", cwd: __dirname }
   );
 
   // 3. Write .vc-config.json
   const vcConfig = {
-    handler: "index.js",
+    handler: "index.mjs",
     launcherType: "Nodejs",
     shouldAddHelpers: false,
     supportsResponseStreaming: true,

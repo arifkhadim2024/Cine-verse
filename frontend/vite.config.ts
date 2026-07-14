@@ -10,7 +10,6 @@ export default defineConfig(() => {
     plugins: [
       tsConfigPaths({ projects: ["./tsconfig.json"] }),
       tanstackStart({
-        server: { entry: "server" },
         importProtection: {
           behavior: "error",
           client: {

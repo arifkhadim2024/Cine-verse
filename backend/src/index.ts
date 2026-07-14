@@ -41,8 +41,12 @@ app.get("/health", (req, res) => {
   res.json({ status: "healthy", timestamp: new Date() });
 });
 
-// Run server only in local development / outside Vercel serverless environment
-if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+// Run server only when launched directly/standalone, or outside Vercel in production
+const isStandalone =
+  process.env.BACKEND_STANDALONE === "true" ||
+  (process.env.NODE_ENV === "production" && !process.env.VERCEL);
+
+if (isStandalone) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

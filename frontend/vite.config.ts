@@ -21,6 +21,25 @@ export default defineConfig(() => {
       }),
       react(),
       tailwindcss(),
+      {
+        name: "express-backend",
+        configureServer(server) {
+          server.middlewares.use(async (req, res, next) => {
+            if (req.url && req.url.startsWith("/api")) {
+              try {
+                // Dynamically import the backend Express app via Vite's ssrLoadModule
+                // This ensures compilation/hot-reloading of backend TypeScript files
+                const { default: app } = await server.ssrLoadModule("../backend/src/index.ts");
+                app(req, res, next);
+              } catch (err) {
+                next(err);
+              }
+            } else {
+              next();
+            }
+          });
+        },
+      },
     ],
     resolve: {
       alias: {
@@ -38,12 +57,6 @@ export default defineConfig(() => {
     server: {
       host: "::",
       port: 8080,
-      proxy: {
-        "/api": {
-          target: "http://localhost:5001",
-          changeOrigin: true,
-        },
-      },
     },
   };
 });

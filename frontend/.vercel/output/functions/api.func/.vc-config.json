@@ -1,5 +1,5 @@
 {
-  "handler": "index.mjs",
+  "handler": "index.js",
   "launcherType": "Nodejs",
   "shouldAddHelpers": false,
   "supportsResponseStreaming": true,

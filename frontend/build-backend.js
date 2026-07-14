@@ -12,17 +12,21 @@ async function main() {
   
   // 1. Create directory if not exists
   fs.mkdirSync(outDir, { recursive: true });
+  const oldMjs = path.join(outDir, "index.mjs");
+  if (fs.existsSync(oldMjs)) {
+    fs.unlinkSync(oldMjs);
+  }
 
-  // 2. Run esbuild to bundle api/index.ts into outDir/index.mjs
+  // 2. Run esbuild to bundle api/index.ts into outDir/index.js
   console.log("📦 Bundling Express backend with esbuild...");
   execSync(
-    "npx esbuild api/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=.vercel/output/functions/api.func/index.mjs",
+    'npx esbuild api/index.ts --bundle --platform=node --format=cjs --target=node22 --banner:js="const importMetaUrl = require(\'url\').pathToFileURL(__filename).toString();" --define:import.meta.url="importMetaUrl" --outfile=.vercel/output/functions/api.func/index.js',
     { stdio: "inherit", cwd: __dirname }
   );
 
   // 3. Write .vc-config.json
   const vcConfig = {
-    handler: "index.mjs",
+    handler: "index.js",
     launcherType: "Nodejs",
     shouldAddHelpers: false,
     supportsResponseStreaming: true,

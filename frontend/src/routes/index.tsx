@@ -95,6 +95,11 @@ function HomePage() {
     queryFn: () => api.movies.getByGenre(878),
   });
 
+  const { data: netflixMovies = [], isLoading: loadingNetflix } = useQuery({
+    queryKey: ["netflixMovies"],
+    queryFn: () => api.movies.getNetflix(1),
+  });
+
   const hero = trendingMovies[heroIndex] || continueWatching[0];
 
   const { data: heroDetails } = useQuery({
@@ -330,6 +335,18 @@ function HomePage() {
           subtitle="What everyone's watching this week"
           movies={trendingMovies}
         />
+      )}
+
+      {loadingNetflix ? (
+        <RowSkeleton count={6} />
+      ) : (
+        netflixMovies.length > 0 && (
+          <MovieRow
+            title="Netflix Vault: Movies & Series"
+            subtitle="Acclaimed movies and binge-worthy shows from the Netflix collection"
+            movies={netflixMovies}
+          />
+        )
       )}
 
       {loadingTopRated ? (

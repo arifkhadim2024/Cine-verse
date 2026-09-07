@@ -1,9 +1,9 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { L as Link } from "../_libs/tanstack__react-router.mjs";
-import { L as Layout } from "./Layout-CtJxAqoB.mjs";
+import { L as Layout } from "./Layout-nZjllVsN.mjs";
 import { M as MovieCard } from "./MovieCard-BjYvX2GX.mjs";
 import { u as useQuery } from "../_libs/tanstack__react-query.mjs";
-import { R as Route$7, g as genres, a as api } from "./router-CaLa1waC.mjs";
+import { R as Route$7, g as genres, a as api } from "./router-C4MiO9sE.mjs";
 import { G as GridSkeleton } from "./SkeletonLoader-czYsnFCo.mjs";
 import "../_libs/sonner.mjs";
 import { a as Search, X, S as Sparkles } from "../_libs/lucide-react.mjs";

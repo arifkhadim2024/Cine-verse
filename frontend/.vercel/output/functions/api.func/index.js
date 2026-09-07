@@ -66750,32 +66750,57 @@ router2.get("/top-rated", async (req, res) => {
     );
   }
 });
+router2.get("/netflix", async (req, res) => {
+  const genre = req.query.genre;
+  const type = req.query.type;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  let results = mockMovies;
+  if (genre) {
+    const lowerGenre = genre.toLowerCase();
+    results = results.filter((m) => m.genres.some((g) => g.toLowerCase() === lowerGenre));
+  }
+  if (type) {
+    results = results.filter((m) => m.type?.toLowerCase() === type.toLowerCase());
+  }
+  const start = (page - 1) * limit;
+  return res.json(results.slice(start, start + limit));
+});
 router2.get("/search", async (req, res) => {
   const query = req.query.q;
   const apiKey = getTmdbKey(req);
   try {
+    const lower = (query || "").toLowerCase().trim();
+    const datasetMatches = mockMovies.filter(
+      (m) => !lower || m.title.toLowerCase().includes(lower) || m.genres.some((g) => g.toLowerCase().includes(lower)) || m.cast.some((c) => c.toLowerCase().includes(lower)) || m.director.toLowerCase().includes(lower) || m.mood.some((md) => md.toLowerCase().includes(lower)) || m.description.toLowerCase().includes(lower)
+    );
     if (!apiKey) {
+      return res.json(datasetMatches.slice(0, 30));
+    }
+    let tmdbMapped = [];
+    try {
+      let response;
       if (!query) {
-        return res.json(mockMovies.slice(0, 20));
+        response = await axios_default.get(`${TMDB_BASE_URL}/movie/popular`, {
+          params: { api_key: apiKey }
+        });
+      } else {
+        response = await axios_default.get(`${TMDB_BASE_URL}/search/movie`, {
+          params: { api_key: apiKey, query }
+        });
       }
-      const lower = query.toLowerCase().trim();
-      const filtered = mockMovies.filter(
-        (m) => m.title.toLowerCase().includes(lower) || m.genres.some((g) => g.toLowerCase().includes(lower)) || m.cast.some((c) => c.toLowerCase().includes(lower)) || m.director.toLowerCase().includes(lower) || m.mood.some((md) => md.toLowerCase().includes(lower)) || m.description.toLowerCase().includes(lower)
-      );
-      return res.json(filtered.slice(0, 20));
+      tmdbMapped = response.data.results.map(mapTmdbMovie);
+    } catch (err) {
+      console.warn("TMDB search failed, falling back to dataset matches", err);
     }
-    let response;
-    if (!query) {
-      response = await axios_default.get(`${TMDB_BASE_URL}/movie/popular`, {
-        params: { api_key: apiKey }
-      });
-    } else {
-      response = await axios_default.get(`${TMDB_BASE_URL}/search/movie`, {
-        params: { api_key: apiKey, query }
-      });
+    const combined = [...datasetMatches.slice(0, 15)];
+    const existingTitles = new Set(combined.map((m) => m.title.toLowerCase()));
+    for (const m of tmdbMapped) {
+      if (!existingTitles.has(m.title.toLowerCase())) {
+        combined.push(m);
+      }
     }
-    const mapped = response.data.results.map(mapTmdbMovie);
-    return res.json(mapped);
+    return res.json(combined);
   } catch (error) {
     console.error("Error searching movies:", error);
     return res.status(500).json({ message: "Error searching movies" });

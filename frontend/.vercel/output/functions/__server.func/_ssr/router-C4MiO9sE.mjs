@@ -4342,22 +4342,30 @@ async function fetchFromTmdb(path, params = {}) {
   return response.json();
 }
 async function searchMovies(query, page = 1) {
-  if (!query) return getPopularMovies(page);
+  const lower = (query || "").toLowerCase().trim();
+  const datasetMatches = movies.filter(
+    (m) => !lower || m.title.toLowerCase().includes(lower) || m.genres.some((g) => g.toLowerCase().includes(lower)) || m.cast.some((c) => c.toLowerCase().includes(lower)) || m.director.toLowerCase().includes(lower) || m.mood.some((md) => md.toLowerCase().includes(lower)) || m.description.toLowerCase().includes(lower)
+  );
   if (!TMDB_API_KEY) {
-    const lower = query.toLowerCase().trim();
-    return movies.filter(
-      (m) => m.title.toLowerCase().includes(lower) || m.genres.some((g) => g.toLowerCase().includes(lower)) || m.cast.some((c) => c.toLowerCase().includes(lower)) || m.description.toLowerCase().includes(lower)
-    );
+    return datasetMatches.slice((page - 1) * 20, page * 20);
   }
   try {
     const data = await fetchFromTmdb("/search/movie", {
-      query,
+      query: query || "popular",
       page: String(page)
     });
-    return data.results.map(mapTmdbMovie);
+    const tmdbResults = (data.results || []).map(mapTmdbMovie);
+    const combined = [...datasetMatches.slice(0, 10)];
+    const existingTitles = new Set(combined.map((m) => m.title.toLowerCase()));
+    for (const m of tmdbResults) {
+      if (!existingTitles.has(m.title.toLowerCase())) {
+        combined.push(m);
+      }
+    }
+    return combined;
   } catch (error) {
     console.error("Error searchMovies:", error);
-    return [];
+    return datasetMatches.slice((page - 1) * 20, page * 20);
   }
 }
 async function getTrendingMovies(page = 1) {
@@ -4480,7 +4488,8 @@ async function getMoviesByGenre(genreId, page = 1) {
   }
 }
 async function getBollywoodMovies(page = 1) {
-  if (!TMDB_API_KEY) return movies.slice(0, 5);
+  const bolly = movies.filter((m) => m.isBollywood || m.country?.toLowerCase().includes("india"));
+  if (!TMDB_API_KEY) return bolly.length > 0 ? bolly.slice(0, 15) : movies.slice(0, 10);
   try {
     const data = await fetchFromTmdb("/discover/movie", {
       with_original_language: "hi",
@@ -4490,11 +4499,12 @@ async function getBollywoodMovies(page = 1) {
     return data.results.map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getBollywoodMovies:", error);
-    return movies.slice(0, 5);
+    return bolly.length > 0 ? bolly.slice(0, 15) : movies.slice(0, 10);
   }
 }
 async function getKoreanMovies(page = 1) {
-  if (!TMDB_API_KEY) return movies.slice(3, 8);
+  const korean = movies.filter((m) => m.isKorean || m.country?.toLowerCase().includes("korea"));
+  if (!TMDB_API_KEY) return korean.length > 0 ? korean.slice(0, 15) : movies.slice(0, 10);
   try {
     const data = await fetchFromTmdb("/discover/movie", {
       with_original_language: "ko",
@@ -4504,11 +4514,12 @@ async function getKoreanMovies(page = 1) {
     return data.results.map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getKoreanMovies:", error);
-    return movies.slice(3, 8);
+    return korean.length > 0 ? korean.slice(0, 15) : movies.slice(0, 10);
   }
 }
 async function getAnimeMovies(page = 1) {
-  if (!TMDB_API_KEY) return movies.filter((m) => m.genres.includes("Anime"));
+  const anime = movies.filter((m) => m.isAnime || m.genres.includes("Anime"));
+  if (!TMDB_API_KEY) return anime.length > 0 ? anime.slice(0, 15) : movies.slice(0, 10);
   try {
     const data = await fetchFromTmdb("/discover/movie", {
       with_genres: "16",
@@ -4519,7 +4530,7 @@ async function getAnimeMovies(page = 1) {
     return data.results.map(mapTmdbMovie);
   } catch (error) {
     console.error("Error getAnimeMovies:", error);
-    return movies.filter((m) => m.genres.includes("Anime"));
+    return anime.length > 0 ? anime.slice(0, 15) : movies.slice(0, 10);
   }
 }
 async function getPopularMovies(page = 1) {
@@ -4676,7 +4687,15 @@ const api = {
       () => tmdb.getBollywood(page)
     ),
     getKorean: (page) => tmdb.isConfigured() ? tmdb.getKorean(page) : request(`/movies/korean?page=${page || 1}`).catch(() => tmdb.getKorean(page)),
-    getAnime: (page) => tmdb.isConfigured() ? tmdb.getAnime(page) : request(`/movies/anime?page=${page || 1}`).catch(() => tmdb.getAnime(page))
+    getAnime: (page) => tmdb.isConfigured() ? tmdb.getAnime(page) : request(`/movies/anime?page=${page || 1}`).catch(() => tmdb.getAnime(page)),
+    getNetflix: (page, genre, type) => request(
+      `/movies/netflix?page=${page || 1}${genre ? `&genre=${encodeURIComponent(genre)}` : ""}${type ? `&type=${encodeURIComponent(type)}` : ""}`
+    ).catch(() => {
+      let results = mockMovies;
+      if (genre) results = results.filter((m) => m.genres.some((g) => g.toLowerCase() === genre.toLowerCase()));
+      if (type) results = results.filter((m) => m.type?.toLowerCase() === type.toLowerCase());
+      return results.slice(((page || 1) - 1) * 20, (page || 1) * 20);
+    })
   },
   // Watchlist & Favorites (syncs to MongoDB when logged in, or falls back to LocalStorage when guest)
   watchlist: {
@@ -4932,44 +4951,44 @@ function RootComponent() {
   const { queryClient } = Route$9.useRouteContext();
   return /* @__PURE__ */ jsxRuntimeExports.jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsxRuntimeExports.jsx(AuthProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}) }) });
 }
-const $$splitComponentImporter$8 = () => import("./watchlist-d1UrjFpa.mjs");
+const $$splitComponentImporter$8 = () => import("./watchlist-BXmWzbDm.mjs");
 const Route$8 = createFileRoute("/watchlist")({
   component: lazyRouteComponent($$splitComponentImporter$8, "component")
 });
-const $$splitComponentImporter$7 = () => import("./search-D5CfBw-V.mjs");
+const $$splitComponentImporter$7 = () => import("./search-BlB4rDMM.mjs");
 const Route$7 = createFileRoute("/search")({
   component: lazyRouteComponent($$splitComponentImporter$7, "component"),
   validateSearch: (s) => ({
     q: typeof s.q === "string" ? s.q : void 0
   })
 });
-const $$splitComponentImporter$6 = () => import("./profile-Ceb8OkT-.mjs");
+const $$splitComponentImporter$6 = () => import("./profile-CLwJB9kX.mjs");
 const Route$6 = createFileRoute("/profile")({
   component: lazyRouteComponent($$splitComponentImporter$6, "component")
 });
-const $$splitComponentImporter$5 = () => import("./login-Deat6Dcj.mjs");
+const $$splitComponentImporter$5 = () => import("./login-Ccbqm4El.mjs");
 const Route$5 = createFileRoute("/login")({
   component: lazyRouteComponent($$splitComponentImporter$5, "component")
 });
-const $$splitComponentImporter$4 = () => import("./genres-jhQT72GW.mjs");
+const $$splitComponentImporter$4 = () => import("./genres-Lxf516y7.mjs");
 const Route$4 = createFileRoute("/genres")({
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./ai-DPhbQ4T0.mjs");
+const $$splitComponentImporter$3 = () => import("./ai-UPPgD5sC.mjs");
 const Route$3 = createFileRoute("/ai")({
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./index-BuU3m9m9.mjs");
+const $$splitComponentImporter$2 = () => import("./index-Bq9AIABW.mjs");
 const Route$2 = createFileRoute("/")({
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitNotFoundComponentImporter = () => import("./movie._id-zSmgC6j3.mjs");
-const $$splitComponentImporter$1 = () => import("./movie._id-DmofDw_k.mjs");
+const $$splitNotFoundComponentImporter = () => import("./movie._id---9SZmiV.mjs");
+const $$splitComponentImporter$1 = () => import("./movie._id-BVTlQUMy.mjs");
 const Route$1 = createFileRoute("/movie/$id")({
   component: lazyRouteComponent($$splitComponentImporter$1, "component"),
   notFoundComponent: lazyRouteComponent($$splitNotFoundComponentImporter, "notFoundComponent")
 });
-const $$splitComponentImporter = () => import("./genre._id-BEEMsYE9.mjs");
+const $$splitComponentImporter = () => import("./genre._id-BfhtOFj_.mjs");
 const Route = createFileRoute("/genre/$id")({
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });

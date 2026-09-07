@@ -38,6 +38,10 @@ const genreMeta: Record<string, { gradient: string; tagline: string }> = {
     gradient: "linear-gradient(135deg, #1a0a00, #a04a0a, #ff9a1a)",
     tagline: "Wander further",
   },
+  Drama: {
+    gradient: "linear-gradient(135deg, #0a0a14, #2a1a3a, #5a2a6a)",
+    tagline: "Emotional powerhouses",
+  },
 };
 
 function GenresPage() {

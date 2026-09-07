@@ -1,7 +1,7 @@
 import { j as jsxRuntimeExports, r as reactExports } from "../_libs/react.mjs";
 import { L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
-import { u as useAuth } from "./router-CaLa1waC.mjs";
+import { u as useAuth } from "./router-C4MiO9sE.mjs";
 import { F as Film, S as Sparkles, B as Bookmark, a as Search, b as Settings, U as User, X, M as Menu, T as Twitter, I as Instagram, Y as Youtube, G as Github } from "../_libs/lucide-react.mjs";
 import { A as AnimatePresence, m as motion } from "../_libs/framer-motion.mjs";
 const links = [

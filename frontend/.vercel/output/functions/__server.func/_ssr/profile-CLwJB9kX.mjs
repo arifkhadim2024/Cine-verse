@@ -1,9 +1,9 @@
 import { j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { d as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { L as Layout } from "./Layout-CtJxAqoB.mjs";
+import { L as Layout } from "./Layout-nZjllVsN.mjs";
 import { M as MovieCard } from "./MovieCard-BjYvX2GX.mjs";
 import { u as useQuery } from "../_libs/tanstack__react-query.mjs";
-import { u as useAuth, a as api } from "./router-CaLa1waC.mjs";
+import { u as useAuth, a as api } from "./router-C4MiO9sE.mjs";
 import "../_libs/sonner.mjs";
 import { B as Bookmark, H as Heart, b as Settings, L as LogOut } from "../_libs/lucide-react.mjs";
 import "../_libs/tanstack__router-core.mjs";

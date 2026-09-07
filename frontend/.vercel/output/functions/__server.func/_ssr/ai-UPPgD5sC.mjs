@@ -1,7 +1,7 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { L as Link } from "../_libs/tanstack__react-router.mjs";
-import { L as Layout } from "./Layout-CtJxAqoB.mjs";
-import { a as api } from "./router-CaLa1waC.mjs";
+import { L as Layout } from "./Layout-nZjllVsN.mjs";
+import { a as api } from "./router-C4MiO9sE.mjs";
 import "../_libs/sonner.mjs";
 import { S as Sparkles, U as User, h as Bot, i as Send } from "../_libs/lucide-react.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";

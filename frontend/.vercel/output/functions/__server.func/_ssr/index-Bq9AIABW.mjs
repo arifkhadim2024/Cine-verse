@@ -1,8 +1,8 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { d as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { L as Layout } from "./Layout-CtJxAqoB.mjs";
+import { L as Layout } from "./Layout-nZjllVsN.mjs";
 import { M as MovieCard } from "./MovieCard-BjYvX2GX.mjs";
-import { c as continueWatching, g as genres, G as GENRE_IDS, a as api } from "./router-CaLa1waC.mjs";
+import { c as continueWatching, g as genres, G as GENRE_IDS, a as api } from "./router-C4MiO9sE.mjs";
 import { u as useQuery } from "../_libs/tanstack__react-query.mjs";
 import { R as RowSkeleton } from "./SkeletonLoader-czYsnFCo.mjs";
 import "../_libs/sonner.mjs";
@@ -216,6 +216,13 @@ function HomePage() {
     queryKey: ["sciFiMovies"],
     queryFn: () => api.movies.getByGenre(878)
   });
+  const {
+    data: netflixMovies = [],
+    isLoading: loadingNetflix
+  } = useQuery({
+    queryKey: ["netflixMovies"],
+    queryFn: () => api.movies.getNetflix(1)
+  });
   const hero = trendingMovies[heroIndex] || continueWatching[0];
   const {
     data: heroDetails
@@ -354,6 +361,7 @@ function HomePage() {
       ] })
     ] }) }),
     loadingTrending ? /* @__PURE__ */ jsxRuntimeExports.jsx(RowSkeleton, { count: 6 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(MovieRow, { title: "Trending Now", subtitle: "What everyone's watching this week", movies: trendingMovies }),
+    loadingNetflix ? /* @__PURE__ */ jsxRuntimeExports.jsx(RowSkeleton, { count: 6 }) : netflixMovies.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(MovieRow, { title: "Netflix Vault: Movies & Series", subtitle: "Acclaimed movies and binge-worthy shows from the Netflix collection", movies: netflixMovies }),
     loadingTopRated ? /* @__PURE__ */ jsxRuntimeExports.jsx(RowSkeleton, { count: 6 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(MovieRow, { title: "Top Rated", subtitle: "Critically acclaimed masterpieces", movies: topRatedMovies }),
     loadingUpcoming ? /* @__PURE__ */ jsxRuntimeExports.jsx(RowSkeleton, { count: 6 }) : /* @__PURE__ */ jsxRuntimeExports.jsx(MovieRow, { title: "Upcoming Releases", subtitle: "Anticipated blockbusters coming soon", movies: upcomingMovies }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MovieRow, { title: "Continue Watching", subtitle: "Pick up where you left off", movies: continueWatching }),

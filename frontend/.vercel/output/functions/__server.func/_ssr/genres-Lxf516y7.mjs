@@ -1,7 +1,7 @@
 import { j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { L as Link } from "../_libs/tanstack__react-router.mjs";
-import { L as Layout } from "./Layout-CtJxAqoB.mjs";
-import { g as genres, m as movies } from "./router-CaLa1waC.mjs";
+import { L as Layout } from "./Layout-nZjllVsN.mjs";
+import { g as genres, m as movies } from "./router-C4MiO9sE.mjs";
 import "../_libs/sonner.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";
 import "../_libs/tanstack__router-core.mjs";
@@ -54,6 +54,10 @@ const genreMeta = {
   Adventure: {
     gradient: "linear-gradient(135deg, #1a0a00, #a04a0a, #ff9a1a)",
     tagline: "Wander further"
+  },
+  Drama: {
+    gradient: "linear-gradient(135deg, #0a0a14, #2a1a3a, #5a2a6a)",
+    tagline: "Emotional powerhouses"
   }
 };
 function GenresPage() {

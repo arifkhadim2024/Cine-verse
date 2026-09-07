@@ -140,6 +140,15 @@ export const api = {
       tmdb.isConfigured()
         ? tmdb.getAnime(page)
         : request<Movie[]>(`/movies/anime?page=${page || 1}`).catch(() => tmdb.getAnime(page)),
+    getNetflix: (page?: number, genre?: string, type?: string) =>
+      request<Movie[]>(
+        `/movies/netflix?page=${page || 1}${genre ? `&genre=${encodeURIComponent(genre)}` : ""}${type ? `&type=${encodeURIComponent(type)}` : ""}`,
+      ).catch(() => {
+        let results = mockMovies;
+        if (genre) results = results.filter((m) => m.genres.some((g) => g.toLowerCase() === genre.toLowerCase()));
+        if (type) results = results.filter((m) => m.type?.toLowerCase() === type.toLowerCase());
+        return results.slice(((page || 1) - 1) * 20, (page || 1) * 20);
+      }),
   },
 
   // Watchlist & Favorites (syncs to MongoDB when logged in, or falls back to LocalStorage when guest)

@@ -206,43 +206,76 @@ router.get("/top-rated", async (req: Request, res: Response): Promise<Response |
   }
 });
 
+// @route   GET api/movies/netflix
+router.get("/netflix", async (req: Request, res: Response): Promise<Response | void> => {
+  const genre = req.query.genre as string;
+  const type = req.query.type as string; // Movie or TV Show
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+
+  let results = mockMovies;
+  if (genre) {
+    const lowerGenre = genre.toLowerCase();
+    results = results.filter((m) => m.genres.some((g) => g.toLowerCase() === lowerGenre));
+  }
+  if (type) {
+    results = results.filter((m) => m.type?.toLowerCase() === type.toLowerCase());
+  }
+
+  const start = (page - 1) * limit;
+  return res.json(results.slice(start, start + limit));
+});
+
 // @route   GET api/movies/search
 router.get("/search", async (req: Request, res: Response): Promise<Response | void> => {
   const query = req.query.q as string;
   const apiKey = getTmdbKey(req);
 
   try {
+    const lower = (query || "").toLowerCase().trim();
+    // Search local dataset
+    const datasetMatches = mockMovies.filter(
+      (m) =>
+        !lower ||
+        m.title.toLowerCase().includes(lower) ||
+        m.genres.some((g) => g.toLowerCase().includes(lower)) ||
+        m.cast.some((c) => c.toLowerCase().includes(lower)) ||
+        m.director.toLowerCase().includes(lower) ||
+        m.mood.some((md) => md.toLowerCase().includes(lower)) ||
+        m.description.toLowerCase().includes(lower),
+    );
+
     if (!apiKey) {
+      return res.json(datasetMatches.slice(0, 30));
+    }
+
+    let tmdbMapped: Movie[] = [];
+    try {
+      let response;
       if (!query) {
-        return res.json(mockMovies.slice(0, 20));
+        response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/movie/popular`, {
+          params: { api_key: apiKey },
+        });
+      } else {
+        response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/search/movie`, {
+          params: { api_key: apiKey, query },
+        });
       }
-      const lower = query.toLowerCase().trim();
-      const filtered = mockMovies.filter(
-        (m) =>
-          m.title.toLowerCase().includes(lower) ||
-          m.genres.some((g) => g.toLowerCase().includes(lower)) ||
-          m.cast.some((c) => c.toLowerCase().includes(lower)) ||
-          m.director.toLowerCase().includes(lower) ||
-          m.mood.some((md) => md.toLowerCase().includes(lower)) ||
-          m.description.toLowerCase().includes(lower),
-      );
-      return res.json(filtered.slice(0, 20));
+      tmdbMapped = response.data.results.map(mapTmdbMovie);
+    } catch (err) {
+      console.warn("TMDB search failed, falling back to dataset matches", err);
     }
 
-    let response;
-    if (!query) {
-      // If query is empty, get popular movies to show default listings
-      response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/movie/popular`, {
-        params: { api_key: apiKey },
-      });
-    } else {
-      response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/search/movie`, {
-        params: { api_key: apiKey, query },
-      });
+    // Merge dataset matches + tmdb results (deduplicate by title)
+    const combined = [...datasetMatches.slice(0, 15)];
+    const existingTitles = new Set(combined.map((m) => m.title.toLowerCase()));
+    for (const m of tmdbMapped) {
+      if (!existingTitles.has(m.title.toLowerCase())) {
+        combined.push(m);
+      }
     }
 
-    const mapped = response.data.results.map(mapTmdbMovie);
-    return res.json(mapped);
+    return res.json(combined);
   } catch (error) {
     console.error("Error searching movies:", error);
     return res.status(500).json({ message: "Error searching movies" });

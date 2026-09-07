@@ -1,10 +1,10 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { L as Link } from "../_libs/tanstack__react-router.mjs";
 import { M as notFound } from "../_libs/tanstack__router-core.mjs";
-import { L as Layout } from "./Layout-CtJxAqoB.mjs";
+import { L as Layout } from "./Layout-nZjllVsN.mjs";
 import { M as MovieCard } from "./MovieCard-BjYvX2GX.mjs";
 import { a as useQueryClient, u as useQuery, b as useMutation } from "../_libs/tanstack__react-query.mjs";
-import { b as Route$1, u as useAuth, a as api } from "./router-CaLa1waC.mjs";
+import { b as Route$1, u as useAuth, a as api } from "./router-C4MiO9sE.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { D as DetailSkeleton } from "./SkeletonLoader-czYsnFCo.mjs";
 import { A as ArrowLeft, m as Calendar, n as Clock, P as Play, d as Plus, H as Heart, o as Share2 } from "../_libs/lucide-react.mjs";

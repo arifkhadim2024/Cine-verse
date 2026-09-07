@@ -160,7 +160,7 @@ router.get("/trending", async (req: Request, res: Response): Promise<Response | 
   try {
     if (!apiKey) {
       console.log("TMDB API Key missing. Serving mock movies.");
-      return res.json(mockMovies.slice(0, 6));
+      return res.json(mockMovies.slice(0, 15));
     }
 
     const response = await axios.get<{ results: TmdbMovie[] }>(
@@ -170,11 +170,11 @@ router.get("/trending", async (req: Request, res: Response): Promise<Response | 
       },
     );
 
-    const mapped = response.data.results.slice(0, 10).map(mapTmdbMovie);
+    const mapped = response.data.results.slice(0, 15).map(mapTmdbMovie);
     return res.json(mapped);
   } catch (error) {
     console.error("Error fetching trending movies:", error);
-    return res.json(mockMovies.slice(0, 6));
+    return res.json(mockMovies.slice(0, 15));
   }
 });
 
@@ -184,10 +184,9 @@ router.get("/top-rated", async (req: Request, res: Response): Promise<Response |
   try {
     if (!apiKey) {
       return res.json(
-        mockMovies
-          .slice()
+        [...mockMovies]
           .sort((a, b) => b.imdb - a.imdb)
-          .slice(0, 8),
+          .slice(0, 15),
       );
     }
 
@@ -195,15 +194,14 @@ router.get("/top-rated", async (req: Request, res: Response): Promise<Response |
       params: { api_key: apiKey },
     });
 
-    const mapped = response.data.results.slice(0, 10).map(mapTmdbMovie);
+    const mapped = response.data.results.slice(0, 15).map(mapTmdbMovie);
     return res.json(mapped);
   } catch (error) {
     console.error("Error fetching top rated movies:", error);
     return res.json(
-      mockMovies
-        .slice()
+      [...mockMovies]
         .sort((a, b) => b.imdb - a.imdb)
-        .slice(0, 8),
+        .slice(0, 15),
     );
   }
 });
@@ -216,7 +214,7 @@ router.get("/search", async (req: Request, res: Response): Promise<Response | vo
   try {
     if (!apiKey) {
       if (!query) {
-        return res.json(mockMovies);
+        return res.json(mockMovies.slice(0, 20));
       }
       const lower = query.toLowerCase().trim();
       const filtered = mockMovies.filter(
@@ -224,9 +222,11 @@ router.get("/search", async (req: Request, res: Response): Promise<Response | vo
           m.title.toLowerCase().includes(lower) ||
           m.genres.some((g) => g.toLowerCase().includes(lower)) ||
           m.cast.some((c) => c.toLowerCase().includes(lower)) ||
+          m.director.toLowerCase().includes(lower) ||
+          m.mood.some((md) => md.toLowerCase().includes(lower)) ||
           m.description.toLowerCase().includes(lower),
       );
-      return res.json(filtered);
+      return res.json(filtered.slice(0, 20));
     }
 
     let response;
@@ -255,18 +255,18 @@ router.get("/upcoming", async (req: Request, res: Response): Promise<Response | 
   const apiKey = getTmdbKey(req);
   try {
     if (!apiKey) {
-      return res.json(mockMovies.slice(2, 8));
+      return res.json(mockMovies.slice(10, 25));
     }
 
     const response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/movie/upcoming`, {
       params: { api_key: apiKey, page: page || "1" },
     });
 
-    const mapped = response.data.results.slice(0, 10).map(mapTmdbMovie);
+    const mapped = response.data.results.slice(0, 15).map(mapTmdbMovie);
     return res.json(mapped);
   } catch (error) {
     console.error("Error fetching upcoming movies:", error);
-    return res.json(mockMovies.slice(2, 8));
+    return res.json(mockMovies.slice(10, 25));
   }
 });
 
@@ -276,7 +276,8 @@ router.get("/bollywood", async (req: Request, res: Response): Promise<Response |
   const apiKey = getTmdbKey(req);
   try {
     if (!apiKey) {
-      return res.json(mockMovies.slice(0, 5));
+      const bolly = mockMovies.filter((m) => m.isBollywood || m.country?.toLowerCase().includes("india"));
+      return res.json(bolly.length > 0 ? bolly.slice(0, 15) : mockMovies.slice(0, 10));
     }
 
     const response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/discover/movie`, {
@@ -292,7 +293,8 @@ router.get("/bollywood", async (req: Request, res: Response): Promise<Response |
     return res.json(mapped);
   } catch (error) {
     console.error("Error fetching bollywood movies:", error);
-    return res.json(mockMovies.slice(0, 5));
+    const bolly = mockMovies.filter((m) => m.isBollywood || m.country?.toLowerCase().includes("india"));
+    return res.json(bolly.length > 0 ? bolly.slice(0, 15) : mockMovies.slice(0, 10));
   }
 });
 
@@ -302,7 +304,8 @@ router.get("/korean", async (req: Request, res: Response): Promise<Response | vo
   const apiKey = getTmdbKey(req);
   try {
     if (!apiKey) {
-      return res.json(mockMovies.slice(3, 8));
+      const korean = mockMovies.filter((m) => m.isKorean || m.country?.toLowerCase().includes("korea"));
+      return res.json(korean.length > 0 ? korean.slice(0, 15) : mockMovies.slice(0, 10));
     }
 
     const response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/discover/movie`, {
@@ -318,7 +321,8 @@ router.get("/korean", async (req: Request, res: Response): Promise<Response | vo
     return res.json(mapped);
   } catch (error) {
     console.error("Error fetching korean movies:", error);
-    return res.json(mockMovies.slice(3, 8));
+    const korean = mockMovies.filter((m) => m.isKorean || m.country?.toLowerCase().includes("korea"));
+    return res.json(korean.length > 0 ? korean.slice(0, 15) : mockMovies.slice(0, 10));
   }
 });
 
@@ -328,7 +332,8 @@ router.get("/anime", async (req: Request, res: Response): Promise<Response | voi
   const apiKey = getTmdbKey(req);
   try {
     if (!apiKey) {
-      return res.json(mockMovies.filter((m) => m.genres.includes("Anime")));
+      const anime = mockMovies.filter((m) => m.isAnime || m.genres.includes("Anime"));
+      return res.json(anime.length > 0 ? anime.slice(0, 15) : mockMovies.slice(0, 10));
     }
 
     const response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/discover/movie`, {
@@ -345,7 +350,8 @@ router.get("/anime", async (req: Request, res: Response): Promise<Response | voi
     return res.json(mapped);
   } catch (error) {
     console.error("Error fetching anime movies:", error);
-    return res.json(mockMovies.filter((m) => m.genres.includes("Anime")));
+    const anime = mockMovies.filter((m) => m.isAnime || m.genres.includes("Anime"));
+    return res.json(anime.length > 0 ? anime.slice(0, 15) : mockMovies.slice(0, 10));
   }
 });
 
@@ -358,8 +364,9 @@ router.get("/genre/:genreId", async (req: Request, res: Response): Promise<Respo
   try {
     if (!apiKey) {
       const genreName = GENRE_MAP[numericGenreId];
-      if (!genreName) return res.json(mockMovies);
-      return res.json(mockMovies.filter((m) => m.genres.includes(genreName)));
+      if (!genreName) return res.json(mockMovies.slice(0, 15));
+      const genreMatches = mockMovies.filter((m) => m.genres.includes(genreName));
+      return res.json(genreMatches.length > 0 ? genreMatches.slice(0, 20) : mockMovies.slice(0, 10));
     }
 
     const response = await axios.get<{ results: TmdbMovie[] }>(`${TMDB_BASE_URL}/discover/movie`, {
@@ -376,7 +383,8 @@ router.get("/genre/:genreId", async (req: Request, res: Response): Promise<Respo
   } catch (error) {
     console.error("Error fetching movies by genre:", error);
     const genreName = GENRE_MAP[numericGenreId];
-    return res.json(mockMovies.filter((m) => m.genres.includes(genreName || "")));
+    const genreMatches = mockMovies.filter((m) => m.genres.includes(genreName || ""));
+    return res.json(genreMatches.length > 0 ? genreMatches.slice(0, 20) : mockMovies.slice(0, 10));
   }
 });
 

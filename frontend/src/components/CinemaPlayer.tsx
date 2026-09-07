@@ -5,17 +5,15 @@ import {
   Volume2,
   VolumeX,
   Maximize,
-  RotateCcw,
   Server,
   Tv,
   Film,
   Sparkles,
   ExternalLink,
-  ChevronRight,
   Layers,
-  CheckCircle2,
   FastForward,
   Rewind,
+  Info,
 } from "lucide-react";
 import type { Movie } from "@/data/movies";
 
@@ -41,12 +39,11 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
   const [selectedServer, setSelectedServer] = useState<
-    "vidsrc" | "embedsu" | "multiembed" | "vidsrcxyz" | "cloud" | "trailer"
-  >("vidsrc");
+    "trailer" | "cloud" | "vidsrc" | "embedsu" | "multiembed"
+  >("trailer");
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -59,13 +56,15 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
     for (let i = 0; i < movie.title.length; i++) {
       hash = movie.title.charCodeAt(i) + ((hash << 5) - hash);
     }
-    numericId = String(Math.abs(hash) % 900000 + 10000);
+    numericId = String((Math.abs(hash) % 900000) + 10000);
   }
 
   // Get stream URL according to selected server
   const getStreamUrl = () => {
     const tmdbId = numericId;
     switch (selectedServer) {
+      case "trailer":
+        return `https://www.youtube.com/embed/${movie.trailerId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`;
       case "vidsrc":
         return isTvShow
           ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`
@@ -78,14 +77,8 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
         return isTvShow
           ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`
           : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
-      case "vidsrcxyz":
-        return isTvShow
-          ? `https://vidsrc.xyz/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`
-          : `https://vidsrc.xyz/embed/movie?tmdb=${tmdbId}`;
-      case "trailer":
-        return `https://www.youtube.com/embed/${movie.trailerId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`;
       default:
-        return "";
+        return `https://www.youtube.com/embed/${movie.trailerId || "dQw4w9WgXcQ"}?autoplay=1&rel=0`;
     }
   };
 
@@ -132,7 +125,7 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
     }
   };
 
-  // Mock list of episodes for Web Series
+  // List of episodes for Web Series
   const episodesList = Array.from({ length: 8 }, (_, i) => ({
     episodeNumber: i + 1,
     title: `Episode ${i + 1}: ${
@@ -156,7 +149,7 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
       className="relative w-full rounded-2xl overflow-hidden bg-zinc-950 border border-white/10 shadow-2xl flex flex-col"
     >
       {/* Player Header */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-3 bg-zinc-900/90 border-b border-white/10 backdrop-blur-md gap-3">
+      <div className="flex flex-wrap items-center justify-between px-4 py-3 bg-zinc-900/95 border-b border-white/10 backdrop-blur-md gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg gradient-red grid place-items-center shadow-red">
             <Film className="w-4 h-4 text-white" />
@@ -181,9 +174,9 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
             href={netflixSearchUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-red transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-red transition-all cursor-pointer hover:scale-105"
           >
-            <Tv className="w-3.5 h-3.5" /> Watch on Netflix
+            <Tv className="w-3.5 h-3.5" /> Watch on Netflix <ExternalLink className="w-3 h-3 ml-0.5" />
           </a>
         </div>
       </div>
@@ -210,12 +203,11 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
               <div className="flex justify-between items-center text-white">
                 <span className="text-xs font-semibold tracking-wider uppercase px-2 py-1 rounded bg-black/60 backdrop-blur-sm">
-                  CineVerse Direct Stream (4K)
+                  CineVerse Direct 4K Stream
                 </span>
               </div>
 
               <div className="space-y-2">
-                {/* Progress Bar */}
                 <input
                   type="range"
                   min={0}
@@ -288,8 +280,30 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 mr-1">
-              <Server className="w-3.5 h-3.5 text-primary" /> Select Stream Server:
+              <Server className="w-3.5 h-3.5 text-primary" /> Active Stream:
             </span>
+
+            <button
+              onClick={() => setSelectedServer("trailer")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedServer === "trailer"
+                  ? "gradient-red text-white shadow-red"
+                  : "glass hover:bg-white/10 text-muted-foreground hover:text-white"
+              }`}
+            >
+              🎬 Official HD Stream / Preview (Active)
+            </button>
+
+            <button
+              onClick={() => setSelectedServer("cloud")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedServer === "cloud"
+                  ? "gradient-red text-white shadow-red"
+                  : "glass hover:bg-white/10 text-muted-foreground hover:text-white"
+              }`}
+            >
+              🍿 Direct Player (Ad-Free 4K)
+            </button>
 
             <button
               onClick={() => setSelectedServer("vidsrc")}
@@ -299,7 +313,7 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
                   : "glass hover:bg-white/10 text-muted-foreground hover:text-white"
               }`}
             >
-              ⚡ Server 1 (VidSrc 4K)
+              ⚡ Server 1 (VidSrc Pro)
             </button>
 
             <button
@@ -312,39 +326,6 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
             >
               🚀 Server 2 (Embed.su)
             </button>
-
-            <button
-              onClick={() => setSelectedServer("multiembed")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                selectedServer === "multiembed"
-                  ? "gradient-red text-white shadow-red"
-                  : "glass hover:bg-white/10 text-muted-foreground hover:text-white"
-              }`}
-            >
-              🌐 Server 3 (Multi-Language)
-            </button>
-
-            <button
-              onClick={() => setSelectedServer("cloud")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                selectedServer === "cloud"
-                  ? "gradient-red text-white shadow-red"
-                  : "glass hover:bg-white/10 text-muted-foreground hover:text-white"
-              }`}
-            >
-              🍿 Direct Stream (Ad-Free HD)
-            </button>
-
-            <button
-              onClick={() => setSelectedServer("trailer")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                selectedServer === "trailer"
-                  ? "gradient-red text-white shadow-red"
-                  : "glass hover:bg-white/10 text-muted-foreground hover:text-white"
-              }`}
-            >
-              🎬 Official Trailer
-            </button>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -354,6 +335,23 @@ export function CinemaPlayer({ movie, autoPlay = true }: CinemaPlayerProps) {
             <span>•</span>
             <span>{movie.duration}</span>
           </div>
+        </div>
+
+        {/* Informational Help Note */}
+        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 text-xs text-muted-foreground border border-white/5">
+          <Info className="w-4 h-4 text-primary shrink-0" />
+          <span>
+            The Kaggle dataset contains movie metadata (titles, cast, synopsis). To stream full DRM-licensed Netflix originals, click{" "}
+            <a
+              href={netflixSearchUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-red-400 font-semibold underline hover:text-red-300"
+            >
+              Watch on Netflix
+            </a>
+            .
+          </span>
         </div>
 
         {/* Web Series Episode Picker */}

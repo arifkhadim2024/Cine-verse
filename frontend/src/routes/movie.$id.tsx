@@ -1,9 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Play, Plus, Heart, Share2, Star, Clock, Calendar, ArrowLeft } from "lucide-react";
+import { Play, Plus, Heart, Share2, Star, Clock, Calendar, ArrowLeft, Tv, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { MovieCard } from "@/components/MovieCard";
+import { MoviePlayerModal } from "@/components/MoviePlayerModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -29,6 +30,7 @@ function MovieDetailsPage() {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [showTrailer, setShowTrailer] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
 
   // Fetch movie details
   const {
@@ -168,23 +170,31 @@ function MovieDetailsPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="aspect-[2/3] rounded-2xl overflow-hidden shadow-red relative bg-background"
+            className="aspect-[2/3] rounded-2xl overflow-hidden shadow-red relative bg-zinc-900 border border-white/10"
           >
             {movie.posterUrl ? (
               <img
                 src={movie.posterUrl}
                 alt={movie.title}
                 className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=600&auto=format&fit=crop";
+                }}
               />
             ) : (
               <div className="absolute inset-0" style={{ background: movie.posterGradient }} />
             )}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_50%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30" />
             <div className="absolute inset-0 flex flex-col justify-between p-4">
-              <span className="text-[10px] font-semibold tracking-widest uppercase opacity-80">
+              <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-black/60 text-white/90 backdrop-blur-sm self-start border border-white/10">
                 {movie.genres?.[0] || "Featured"}
               </span>
-              <h2 className="font-display text-3xl leading-tight drop-shadow-lg">{movie.title}</h2>
+              <div>
+                <h2 className="font-display text-2xl sm:text-3xl leading-tight drop-shadow-lg text-white font-semibold">
+                  {movie.title}
+                </h2>
+              </div>
             </div>
           </motion.div>
 
@@ -196,7 +206,7 @@ function MovieDetailsPage() {
           >
             <div className="flex flex-wrap gap-2 mb-3">
               {movie.genres?.map((g) => (
-                <span key={g} className="px-2.5 py-0.5 rounded-full glass text-xs">
+                <span key={g} className="px-2.5 py-0.5 rounded-full glass text-xs font-medium">
                   {g}
                 </span>
               ))}
@@ -210,7 +220,9 @@ function MovieDetailsPage() {
                 />
               </div>
             ) : (
-              <h1 className="font-display text-5xl sm:text-7xl leading-none mb-4">{movie.title}</h1>
+              <h1 className="font-display text-4xl sm:text-6xl font-bold leading-none mb-4 text-white">
+                {movie.title}
+              </h1>
             )}
 
             {movie.tagline && (
@@ -247,7 +259,14 @@ function MovieDetailsPage() {
               {movie.description}
             </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setShowPlayer(true)}
+                className="inline-flex items-center gap-2 rounded-md gradient-red px-7 py-3.5 font-bold text-primary-foreground shadow-red hover:scale-105 hover:brightness-110 transition-all cursor-pointer text-base"
+              >
+                <Play className="w-5 h-5 fill-current" /> Watch Movie
+              </button>
+
               <button
                 onClick={() => {
                   if (movie.trailerId) {
@@ -256,14 +275,27 @@ function MovieDetailsPage() {
                     toast.error("Trailer not available for this movie.");
                   }
                 }}
-                className="inline-flex items-center gap-2 rounded-md gradient-red px-6 py-3 font-semibold text-primary-foreground shadow-red hover:scale-105 transition-transform cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-md glass-strong px-5 py-3.5 font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <Play className="w-5 h-5 fill-current" /> Watch Trailer
+                <Play className="w-4 h-4" /> Watch Trailer
               </button>
+
+              <a
+                href={
+                  movie.netflixUrl ||
+                  `https://www.netflix.com/search?q=${encodeURIComponent(movie.title)}`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-red-600 hover:bg-red-700 px-5 py-3.5 font-semibold text-white shadow-red transition-all cursor-pointer"
+              >
+                <Tv className="w-4 h-4" /> Watch on Netflix
+              </a>
+
               <button
                 onClick={handleWatchlistClick}
                 disabled={toggleWatchlistMutation.isPending}
-                className={`inline-flex items-center gap-2 rounded-md px-5 py-3 font-semibold transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-2 rounded-md px-5 py-3.5 font-semibold transition-colors cursor-pointer ${
                   isSaved
                     ? "gradient-red text-primary-foreground shadow-red"
                     : "glass-strong hover:bg-accent"
@@ -271,6 +303,7 @@ function MovieDetailsPage() {
               >
                 <Plus className="w-5 h-5" /> {isSaved ? "In Watchlist" : "Add to Watchlist"}
               </button>
+
               <button
                 onClick={handleFavoriteClick}
                 disabled={toggleFavoriteMutation.isPending}
@@ -279,6 +312,7 @@ function MovieDetailsPage() {
               >
                 <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
               </button>
+
               <button
                 className="w-12 h-12 grid place-items-center rounded-md glass-strong hover:bg-accent cursor-pointer"
                 aria-label="Share"
@@ -474,6 +508,13 @@ function MovieDetailsPage() {
             </div>
           </section>
         )}
+
+        {/* Full Cinema Player Modal */}
+        <MoviePlayerModal
+          movie={movie}
+          isOpen={showPlayer}
+          onClose={() => setShowPlayer(false)}
+        />
       </div>
     </Layout>
   );

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { MovieCard } from "@/components/MovieCard";
 import { MoviePlayerModal } from "@/components/MoviePlayerModal";
+import { CinemaPlayer } from "@/components/CinemaPlayer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -416,6 +417,22 @@ function MovieDetailsPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* Inline Cinema Theatre Stream Section */}
+        <section id="cinema-player-section" className="mt-14 border-t border-white/10 pt-10">
+          <div className="flex flex-wrap items-center justify-between mb-5 gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="w-3 h-3 rounded-full bg-red-600 animate-pulse shadow-red" />
+              <h2 className="font-display text-2xl sm:text-4xl text-white font-bold">
+                {movie.type === "TV Show" ? "Watch Web Series Episodes" : "Stream Full Movie"}
+              </h2>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              4K Ultra HD • Switch Servers & Audio Below
+            </span>
+          </div>
+          <CinemaPlayer movie={movie} autoPlay={false} />
+        </section>
 
         {/* Cast profile cards */}
         {movie.castDetails && movie.castDetails.length > 0 ? (
